@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import type { StrainType } from "@/data/strains";
 
-const filters: { label: string; value: StrainType | "All" }[] = [
+type StrainTypeFilter = "Sativa" | "Indica" | "Hybrid" | "All";
+
+const filters: { label: string; value: StrainTypeFilter }[] = [
   { label: "All", value: "All" },
   { label: "Indica", value: "Indica" },
   { label: "Sativa", value: "Sativa" },
@@ -9,8 +10,8 @@ const filters: { label: string; value: StrainType | "All" }[] = [
 ];
 
 interface FilterChipsProps {
-  active: StrainType | "All";
-  onChange: (value: StrainType | "All") => void;
+  active: StrainTypeFilter;
+  onChange: (value: StrainTypeFilter) => void;
 }
 
 export function FilterChips({ active, onChange }: FilterChipsProps) {
@@ -31,7 +32,7 @@ export function FilterChips({ active, onChange }: FilterChipsProps) {
           <button
             key={filter.value}
             onClick={() => onChange(filter.value)}
-            className={`relative px-5 py-2 rounded-full text-sm font-medium font-body transition-all duration-200 ${
+            className={`relative px-4 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium font-body transition-all duration-200 ${
               isActive
                 ? filter.value === "All"
                   ? "bg-primary text-primary-foreground"

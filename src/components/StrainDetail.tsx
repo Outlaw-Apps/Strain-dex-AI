@@ -4,11 +4,13 @@ import {
   Citrus, TreePine, Flame, Sparkles, Apple, Cherry, Grape,
   FlaskConical, Moon, Zap, Brain, Sun
 } from "lucide-react";
-import type { Strain } from "@/data/strains";
+import type { DbStrain } from "@/hooks/useStrains";
 
 interface StrainDetailProps {
-  strain: Strain | null;
+  strain: DbStrain | null;
   onClose: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 const aromaIcons: Record<string, React.ReactNode> = {
@@ -51,7 +53,7 @@ const effectIcons: Record<string, React.ReactNode> = {
   Hungry: <Apple className="w-4 h-4" />,
 };
 
-export function StrainDetail({ strain, onClose }: StrainDetailProps) {
+export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: StrainDetailProps) {
   if (!strain) return null;
 
   const badgeClass =
@@ -68,91 +70,100 @@ export function StrainDetail({ strain, onClose }: StrainDetailProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8"
           onClick={onClose}
         >
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
 
-          {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-card border border-border scrollbar-thin"
+            className="relative w-full sm:max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-card border border-border scrollbar-thin"
           >
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full glass hover:bg-muted transition-colors"
-            >
-              <X className="w-5 h-5 text-foreground" />
-            </button>
+            {/* Drag handle for mobile */}
+            <div className="sm:hidden flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            </div>
+
+            {/* Close + Favorite buttons */}
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-2">
+              {onToggleFavorite && (
+                <button
+                  onClick={onToggleFavorite}
+                  className="p-2 rounded-full glass hover:bg-muted transition-colors"
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite ? "fill-primary text-primary" : "text-foreground"}`} />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full glass hover:bg-muted transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground" />
+              </button>
+            </div>
 
             {/* Header */}
-            <div className="relative h-48 md:h-64 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-              {strain.image ? (
-                <img
-                  src={strain.image}
-                  alt={strain.name}
-                  className="w-full h-full object-cover"
-                />
+            <div className="relative h-40 sm:h-48 md:h-64 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
+              {strain.image_url ? (
+                <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
               ) : (
-                <Leaf className="w-24 h-24 text-primary/20" />
+                <Leaf className="w-20 h-20 md:w-24 md:h-24 text-primary/20" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-              <div className="absolute bottom-4 left-6 right-6">
-                <div className="flex items-center gap-3">
-                  <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+              <div className="absolute bottom-3 left-4 right-4 sm:bottom-4 sm:left-6 sm:right-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
                     {strain.name}
                   </h2>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${badgeClass}`}>
+                  <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium ${badgeClass}`}>
                     {strain.type}
                   </span>
                 </div>
-                <p className="text-muted-foreground text-sm mt-1">{strain.genetics}</p>
+                <p className="text-muted-foreground text-xs sm:text-sm mt-1">{strain.genetics}</p>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Vitals */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 rounded-2xl bg-secondary">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">THC</p>
-                  <p className="text-2xl font-display font-bold neon-text mt-1">{strain.thc}%</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                <div className="text-center p-3 sm:p-4 rounded-2xl bg-secondary">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">THC</p>
+                  <p className="text-xl sm:text-2xl font-display font-bold neon-text mt-1">{strain.thc}%</p>
                 </div>
-                <div className="text-center p-4 rounded-2xl bg-secondary">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">CBD</p>
-                  <p className="text-2xl font-display font-bold text-foreground mt-1">{strain.cbd}%</p>
+                <div className="text-center p-3 sm:p-4 rounded-2xl bg-secondary">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">CBD</p>
+                  <p className="text-xl sm:text-2xl font-display font-bold text-foreground mt-1">{strain.cbd}%</p>
                 </div>
-                <div className="text-center p-4 rounded-2xl bg-secondary">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Terpene</p>
-                  <div className="flex items-center justify-center gap-1.5 mt-1">
-                    <FlaskConical className="w-4 h-4 text-primary" />
-                    <p className="text-sm font-display font-bold text-foreground">{strain.dominantTerpene}</p>
+                <div className="text-center p-3 sm:p-4 rounded-2xl bg-secondary">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">Terpene</p>
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <FlaskConical className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                    <p className="text-xs sm:text-sm font-display font-bold text-foreground">{strain.dominant_terpene}</p>
                   </div>
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <h3 className="font-display font-semibold text-lg text-foreground mb-2">About</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{strain.description}</p>
+                <h3 className="font-display font-semibold text-base sm:text-lg text-foreground mb-2">About</h3>
+                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{strain.description}</p>
               </div>
 
-              {/* Four Column Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Detail grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {/* Aromas */}
-                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
                     <Droplets className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground">Aroma</h4>
+                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Aroma</h4>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {strain.aromas.map((aroma) => (
-                      <div key={aroma} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div key={aroma} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                         {aromaIcons[aroma] || <Leaf className="w-4 h-4" />}
                         <span>{aroma}</span>
                       </div>
@@ -161,23 +172,20 @@ export function StrainDetail({ strain, onClose }: StrainDetailProps) {
                 </div>
 
                 {/* Effects */}
-                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground">Effects</h4>
+                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Effects</h4>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {strain.effects.map((effect) => (
-                      <div
-                        key={effect}
-                        className={`flex items-center gap-2 text-sm ${effectColors[effect] || "text-muted-foreground"}`}
-                      >
+                      <div key={effect} className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm ${effectColors[effect] || "text-muted-foreground"}`}>
                         {effectIcons[effect] || <Smile className="w-4 h-4" />}
                         <span>{effect}</span>
                       </div>
                     ))}
-                    {strain.negativeEffects.map((effect) => (
-                      <div key={effect} className="flex items-center gap-2 text-sm text-destructive/70">
+                    {strain.negative_effects.map((effect) => (
+                      <div key={effect} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-destructive/70">
                         <Frown className="w-4 h-4" />
                         <span>{effect}</span>
                       </div>
@@ -186,14 +194,14 @@ export function StrainDetail({ strain, onClose }: StrainDetailProps) {
                 </div>
 
                 {/* Medical Uses */}
-                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
                     <Heart className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground">Medical</h4>
+                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Medical</h4>
                   </div>
-                  <div className="space-y-2">
-                    {strain.medicalUses.map((use) => (
-                      <div key={use} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    {strain.medical_uses.map((use) => (
+                      <div key={use} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                         <Heart className="w-3 h-3 text-primary/50" />
                         <span>{use}</span>
                       </div>
@@ -202,14 +210,14 @@ export function StrainDetail({ strain, onClose }: StrainDetailProps) {
                 </div>
 
                 {/* Taste */}
-                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
                     <Apple className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground">Taste</h4>
+                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Taste</h4>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {strain.tastes.map((taste) => (
-                      <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div key={taste} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                         {aromaIcons[taste] || <Leaf className="w-4 h-4" />}
                         <span>{taste}</span>
                       </div>

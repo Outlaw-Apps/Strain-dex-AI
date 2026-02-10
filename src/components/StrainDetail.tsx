@@ -1,0 +1,226 @@
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X, Leaf, Droplets, Smile, Frown, Heart, Wind,
+  Citrus, TreePine, Flame, Sparkles, Apple, Cherry, Grape,
+  FlaskConical, Moon, Zap, Brain, Sun
+} from "lucide-react";
+import type { Strain } from "@/data/strains";
+
+interface StrainDetailProps {
+  strain: Strain | null;
+  onClose: () => void;
+}
+
+const aromaIcons: Record<string, React.ReactNode> = {
+  Citrus: <Citrus className="w-4 h-4" />,
+  Pine: <TreePine className="w-4 h-4" />,
+  Earthy: <Leaf className="w-4 h-4" />,
+  Sweet: <Cherry className="w-4 h-4" />,
+  Berry: <Grape className="w-4 h-4" />,
+  Diesel: <Flame className="w-4 h-4" />,
+  Tropical: <Sun className="w-4 h-4" />,
+  Pungent: <Wind className="w-4 h-4" />,
+  Woody: <TreePine className="w-4 h-4" />,
+  Herbal: <Leaf className="w-4 h-4" />,
+  Grape: <Grape className="w-4 h-4" />,
+  Pineapple: <Apple className="w-4 h-4" />,
+  Cedar: <TreePine className="w-4 h-4" />,
+};
+
+const effectColors: Record<string, string> = {
+  Happy: "text-primary",
+  Relaxed: "text-blue-400",
+  Euphoric: "text-amber-400",
+  Creative: "text-violet-400",
+  Uplifted: "text-cyan-400",
+  Energetic: "text-orange-400",
+  Focused: "text-emerald-400",
+  Sleepy: "text-indigo-400",
+  Hungry: "text-yellow-400",
+};
+
+const effectIcons: Record<string, React.ReactNode> = {
+  Happy: <Smile className="w-4 h-4" />,
+  Relaxed: <Moon className="w-4 h-4" />,
+  Euphoric: <Sparkles className="w-4 h-4" />,
+  Creative: <Brain className="w-4 h-4" />,
+  Uplifted: <Zap className="w-4 h-4" />,
+  Energetic: <Zap className="w-4 h-4" />,
+  Focused: <Brain className="w-4 h-4" />,
+  Sleepy: <Moon className="w-4 h-4" />,
+  Hungry: <Apple className="w-4 h-4" />,
+};
+
+export function StrainDetail({ strain, onClose }: StrainDetailProps) {
+  if (!strain) return null;
+
+  const badgeClass =
+    strain.type === "Indica"
+      ? "badge-indica"
+      : strain.type === "Sativa"
+      ? "badge-sativa"
+      : "badge-hybrid";
+
+  return (
+    <AnimatePresence>
+      {strain && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+          onClick={onClose}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-card border border-border scrollbar-thin"
+          >
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full glass hover:bg-muted transition-colors"
+            >
+              <X className="w-5 h-5 text-foreground" />
+            </button>
+
+            {/* Header */}
+            <div className="relative h-48 md:h-64 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
+              {strain.image ? (
+                <img
+                  src={strain.image}
+                  alt={strain.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Leaf className="w-24 h-24 text-primary/20" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+              <div className="absolute bottom-4 left-6 right-6">
+                <div className="flex items-center gap-3">
+                  <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+                    {strain.name}
+                  </h2>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${badgeClass}`}>
+                    {strain.type}
+                  </span>
+                </div>
+                <p className="text-muted-foreground text-sm mt-1">{strain.genetics}</p>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Vitals */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 rounded-2xl bg-secondary">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">THC</p>
+                  <p className="text-2xl font-display font-bold neon-text mt-1">{strain.thc}%</p>
+                </div>
+                <div className="text-center p-4 rounded-2xl bg-secondary">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">CBD</p>
+                  <p className="text-2xl font-display font-bold text-foreground mt-1">{strain.cbd}%</p>
+                </div>
+                <div className="text-center p-4 rounded-2xl bg-secondary">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Terpene</p>
+                  <div className="flex items-center justify-center gap-1.5 mt-1">
+                    <FlaskConical className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-display font-bold text-foreground">{strain.dominantTerpene}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-display font-semibold text-lg text-foreground mb-2">About</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{strain.description}</p>
+              </div>
+
+              {/* Four Column Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Aromas */}
+                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Droplets className="w-4 h-4 text-primary" />
+                    <h4 className="font-display font-semibold text-sm text-foreground">Aroma</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {strain.aromas.map((aroma) => (
+                      <div key={aroma} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        {aromaIcons[aroma] || <Leaf className="w-4 h-4" />}
+                        <span>{aroma}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Effects */}
+                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <h4 className="font-display font-semibold text-sm text-foreground">Effects</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {strain.effects.map((effect) => (
+                      <div
+                        key={effect}
+                        className={`flex items-center gap-2 text-sm ${effectColors[effect] || "text-muted-foreground"}`}
+                      >
+                        {effectIcons[effect] || <Smile className="w-4 h-4" />}
+                        <span>{effect}</span>
+                      </div>
+                    ))}
+                    {strain.negativeEffects.map((effect) => (
+                      <div key={effect} className="flex items-center gap-2 text-sm text-destructive/70">
+                        <Frown className="w-4 h-4" />
+                        <span>{effect}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Medical Uses */}
+                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-primary" />
+                    <h4 className="font-display font-semibold text-sm text-foreground">Medical</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {strain.medicalUses.map((use) => (
+                      <div key={use} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Heart className="w-3 h-3 text-primary/50" />
+                        <span>{use}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Taste */}
+                <div className="p-4 rounded-2xl bg-secondary space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Apple className="w-4 h-4 text-primary" />
+                    <h4 className="font-display font-semibold text-sm text-foreground">Taste</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {strain.tastes.map((taste) => (
+                      <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        {aromaIcons[taste] || <Leaf className="w-4 h-4" />}
+                        <span>{taste}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

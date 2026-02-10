@@ -1,1 +1,7 @@
 project_id = "whazfqmcpgubmblfphcy"
+
+[functions.generate-strain-image]
+verify_jwt = false
+
+[functions.cannlytics-sync]
+verify_jwt = false

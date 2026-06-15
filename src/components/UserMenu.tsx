@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User, Heart } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { LogOut, User, Heart, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface UserMenuProps {
@@ -9,6 +10,7 @@ interface UserMenuProps {
 
 export function UserMenu({ showFavoritesOnly, onToggleFavorites }: UserMenuProps) {
   const { user, signOut } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   if (!user) {
@@ -36,6 +38,15 @@ export function UserMenu({ showFavoritesOnly, onToggleFavorites }: UserMenuProps
       >
         <Heart className={`w-5 h-5 ${showFavoritesOnly ? "fill-primary" : ""}`} />
       </button>
+      {isAdmin && (
+        <button
+          onClick={() => navigate("/admin/bulk-upload")}
+          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+          title="Bulk upload strains"
+        >
+          <Upload className="w-5 h-5" />
+        </button>
+      )}
       <button
         onClick={signOut}
         className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"

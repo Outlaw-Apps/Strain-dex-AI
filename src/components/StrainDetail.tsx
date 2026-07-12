@@ -209,7 +209,7 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                   <div className="space-y-2">
                     {strain.aromas.map((aroma) => (
                       <div key={aroma} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[aroma] || <Leaf className="w-4 h-4" />}
+                        {aromaIcons[aroma] || defaultAromaIcon}
                         <span>{aroma}</span>
                       </div>
                     ))}
@@ -269,7 +269,7 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                   <div className="space-y-2">
                     {strain.tastes.map((taste) => (
                       <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[taste] || <Leaf className="w-4 h-4" />}
+                        {aromaIcons[taste] || defaultAromaIcon}
                         <span>{taste}</span>
                       </div>
                     ))}

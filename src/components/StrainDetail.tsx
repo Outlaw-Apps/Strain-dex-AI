@@ -95,6 +95,9 @@ const negativeEffectIcons: Record<string, React.ReactNode> = {
   Irritable: <Angry className="w-4 h-4" />,
 };
 
+const defaultAromaIcon = <Droplets className="w-4 h-4 text-primary/60" aria-label="Unmapped scent" />;
+
+
 export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: StrainDetailProps) {
   if (!strain) return null;
 

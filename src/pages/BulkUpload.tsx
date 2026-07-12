@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Download, Upload, Loader2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,6 +57,53 @@ export default function BulkUpload() {
   const [preview, setPreview] = useState<Record<string, any>[] | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<{ inserted: number; failed: number } | null>(null);
+
+  // AI import
+  const [aiNames, setAiNames] = useState("");
+  const [aiRunning, setAiRunning] = useState(false);
+  const [aiResults, setAiResults] = useState<
+    { name: string; status: "inserted" | "failed"; error?: string }[] | null
+  >(null);
+
+  const handleAiImport = async () => {
+    const names = aiNames
+      .split(/\r?\n|,/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!names.length) {
+      toast({ title: "Enter at least one strain name", variant: "destructive" });
+      return;
+    }
+    setAiRunning(true);
+    setAiResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-strain-import", {
+        body: { names },
+      });
+      if (error) throw error;
+      const results = (data?.results ?? []) as {
+        name: string;
+        status: "inserted" | "failed";
+        error?: string;
+      }[];
+      setAiResults(results);
+      const inserted = results.filter((r) => r.status === "inserted").length;
+      const failed = results.length - inserted;
+      qc.invalidateQueries({ queryKey: ["strains"] });
+      toast({
+        title: failed ? "AI import finished with errors" : "AI import complete",
+        description: `${inserted} inserted, ${failed} failed.`,
+      });
+    } catch (e: any) {
+      toast({
+        title: "AI import failed",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setAiRunning(false);
+    }
+  };
 
   const downloadTemplate = () => {
     const csv = toCSV(TEMPLATE_ROWS);

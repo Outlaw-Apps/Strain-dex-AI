@@ -1,6 +1,11 @@
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Leaf, Heart } from "lucide-react";
+import { Leaf, Heart, ImagePlus, Loader2 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface StrainCardProps {
   strain: DbStrain;
@@ -11,12 +16,57 @@ interface StrainCardProps {
 }
 
 export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorite }: StrainCardProps) {
+  const { data: isAdmin } = useIsAdmin();
+  const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
   const badgeClass =
     strain.type === "Indica"
       ? "badge-indica"
       : strain.type === "Sativa"
       ? "badge-sativa"
       : "badge-hybrid";
+
+  const handleUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Please choose an image file", variant: "destructive" });
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast({ title: "Image must be under 8MB", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${strain.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("strain-images")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage.from("strain-images").getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+
+      const { error: dbErr } = await supabase
+        .from("strains")
+        .update({ image_url: publicUrl })
+        .eq("id", strain.id);
+      if (dbErr) throw dbErr;
+
+      qc.invalidateQueries({ queryKey: ["strains"] });
+      toast({ title: "Image updated", description: strain.name });
+    } catch (e: any) {
+      toast({
+        title: "Upload failed",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -52,6 +102,44 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
             {strain.type}
           </span>
         </div>
+
+        {isAdmin && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+              disabled={uploading}
+              aria-label={strain.image_url ? "Replace image" : "Upload image"}
+              className="absolute bottom-2 left-2 md:bottom-3 md:left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full glass hover:bg-muted/80 transition-colors text-[11px] md:text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-100"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Uploading…</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  <span>{strain.image_url ? "Replace" : "Upload"}</span>
+                </>
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUpload(f);
+                e.target.value = "";
+              }}
+            />
+          </>
+        )}
       </div>
       <div className="p-3 md:p-4">
         <h3 className="font-display font-semibold text-sm md:text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">

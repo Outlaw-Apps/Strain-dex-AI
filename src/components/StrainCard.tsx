@@ -155,6 +155,16 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
           THC {strain.thc}% · {strain.dominant_terpene}
         </p>
       </div>
+      {pendingFile && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <ImageCropperDialog
+            file={pendingFile}
+            open={!!pendingFile}
+            onCancel={() => setPendingFile(null)}
+            onConfirm={handleCroppedUpload}
+          />
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -2,7 +2,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Leaf, Droplets, Smile, Frown, Heart, Wind,
   Citrus, TreePine, Flame, Sparkles, Apple, Cherry, Grape,
-  FlaskConical, Moon, Zap, Brain, Sun, Eye, Dna
+  FlaskConical, Moon, Zap, Brain, Sun, Eye, Dna,
+  Coffee, Candy, Flower2, Nut, Milk, Wheat, Mint,
+  AlertCircle, CloudFog, EyeOff, Droplet, HeartCrack, Angry, Skull
 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
 
@@ -15,31 +17,59 @@ interface StrainDetailProps {
 
 const aromaIcons: Record<string, React.ReactNode> = {
   Citrus: <Citrus className="w-4 h-4" />,
+  Lemon: <Citrus className="w-4 h-4" />,
+  Orange: <Citrus className="w-4 h-4" />,
   Pine: <TreePine className="w-4 h-4" />,
   Earthy: <Leaf className="w-4 h-4" />,
-  Sweet: <Cherry className="w-4 h-4" />,
+  Sweet: <Candy className="w-4 h-4" />,
+  Sugar: <Candy className="w-4 h-4" />,
   Berry: <Grape className="w-4 h-4" />,
+  Blueberry: <Grape className="w-4 h-4" />,
   Diesel: <Flame className="w-4 h-4" />,
+  Gas: <Flame className="w-4 h-4" />,
+  Skunk: <Flame className="w-4 h-4" />,
+  Chemical: <Flame className="w-4 h-4" />,
   Tropical: <Sun className="w-4 h-4" />,
+  Mango: <Sun className="w-4 h-4" />,
   Pungent: <Wind className="w-4 h-4" />,
   Woody: <TreePine className="w-4 h-4" />,
-  Herbal: <Leaf className="w-4 h-4" />,
+  Herbal: <Mint className="w-4 h-4" />,
+  Mint: <Mint className="w-4 h-4" />,
+  Menthol: <Mint className="w-4 h-4" />,
   Grape: <Grape className="w-4 h-4" />,
   Pineapple: <Apple className="w-4 h-4" />,
+  Apple: <Apple className="w-4 h-4" />,
+  Cherry: <Cherry className="w-4 h-4" />,
   Cedar: <TreePine className="w-4 h-4" />,
+  Floral: <Flower2 className="w-4 h-4" />,
+  Lavender: <Flower2 className="w-4 h-4" />,
+  Rose: <Flower2 className="w-4 h-4" />,
+  Coffee: <Coffee className="w-4 h-4" />,
+  Chocolate: <Coffee className="w-4 h-4" />,
+  Nutty: <Nut className="w-4 h-4" />,
+  Almond: <Nut className="w-4 h-4" />,
+  Creamy: <Milk className="w-4 h-4" />,
+  Vanilla: <Milk className="w-4 h-4" />,
+  Spicy: <Flame className="w-4 h-4" />,
+  Pepper: <Flame className="w-4 h-4" />,
+  Grass: <Wheat className="w-4 h-4" />,
+  Hay: <Wheat className="w-4 h-4" />,
 };
 
 const effectColors: Record<string, string> = {
-  Happy: "text-primary",
-  Relaxed: "text-blue-400",
-  Euphoric: "text-amber-400",
-  Creative: "text-violet-400",
-  Uplifted: "text-cyan-400",
-  Energetic: "text-orange-400",
-  Focused: "text-emerald-400",
-  Sleepy: "text-indigo-400",
-  Hungry: "text-yellow-400",
+  Happy: "text-primary bg-primary/10 border-primary/20",
+  Relaxed: "text-blue-400 bg-blue-400/10 border-blue-400/20",
+  Euphoric: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+  Creative: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+  Uplifted: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
+  Energetic: "text-orange-400 bg-orange-400/10 border-orange-400/20",
+  Focused: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+  Sleepy: "text-indigo-400 bg-indigo-400/10 border-indigo-400/20",
+  Hungry: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
 };
+
+const positiveEffectDefault = "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
+const negativeEffectClass = "text-rose-400 bg-rose-500/10 border-rose-500/25";
 
 const effectIcons: Record<string, React.ReactNode> = {
   Happy: <Smile className="w-4 h-4" />,
@@ -51,6 +81,18 @@ const effectIcons: Record<string, React.ReactNode> = {
   Focused: <Brain className="w-4 h-4" />,
   Sleepy: <Moon className="w-4 h-4" />,
   Hungry: <Apple className="w-4 h-4" />,
+};
+
+const negativeEffectIcons: Record<string, React.ReactNode> = {
+  "Dry Mouth": <Droplet className="w-4 h-4" />,
+  "Dry Eyes": <EyeOff className="w-4 h-4" />,
+  Paranoid: <AlertCircle className="w-4 h-4" />,
+  Paranoia: <AlertCircle className="w-4 h-4" />,
+  Anxious: <HeartCrack className="w-4 h-4" />,
+  Anxiety: <HeartCrack className="w-4 h-4" />,
+  Dizzy: <CloudFog className="w-4 h-4" />,
+  Headache: <Skull className="w-4 h-4" />,
+  Irritable: <Angry className="w-4 h-4" />,
 };
 
 export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: StrainDetailProps) {

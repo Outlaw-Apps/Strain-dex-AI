@@ -225,6 +225,13 @@ export function StrainManager() {
         open={!!editing}
         onOpenChange={(v) => !v && setEditing(null)}
       />
+
+      <BulkEditDialog
+        ids={Array.from(selected)}
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        onDone={clearSelection}
+      />
     </div>
   );
 }

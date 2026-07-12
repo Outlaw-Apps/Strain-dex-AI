@@ -41,10 +41,11 @@ export function UserMenu({ showFavoritesOnly, onToggleFavorites }: UserMenuProps
       {isAdmin && (
         <button
           onClick={() => navigate("/admin/bulk-upload")}
-          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-          title="Bulk upload strains"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all text-sm font-medium"
+          title="Admin panel"
         >
-          <Upload className="w-5 h-5" />
+          <Upload className="w-4 h-4" />
+          <span className="hidden sm:inline">Admin</span>
         </button>
       )}
       <button

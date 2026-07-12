@@ -158,6 +158,13 @@ export function StrainManager() {
             const deleted = !!s.deleted_at;
             return (
               <div key={s.id} className="flex items-center gap-3 p-3">
+                <input
+                  type="checkbox"
+                  checked={selected.has(s.id)}
+                  onChange={() => toggleOne(s.id)}
+                  className="w-4 h-4"
+                  aria-label={`Select ${s.name}`}
+                />
                 <img
                   src={s.image_url || "/placeholder.svg"}
                   alt={s.name}

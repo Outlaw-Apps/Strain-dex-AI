@@ -5,7 +5,7 @@ import { Leaf } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterChips } from "@/components/FilterChips";
 import { StrainCard } from "@/components/StrainCard";
-import { StrainDetail } from "@/components/StrainDetail";
+
 import { SortSelect } from "@/components/SortSelect";
 import { EffectFilter } from "@/components/EffectFilter";
 import { UserMenu } from "@/components/UserMenu";

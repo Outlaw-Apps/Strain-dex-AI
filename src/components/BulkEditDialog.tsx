@@ -71,7 +71,7 @@ export function BulkEditDialog({ ids, open, onOpenChange, onDone }: Props) {
 
   const apply = useMutation({
     mutationFn: async () => {
-      const scalar: Record<string, unknown> = {};
+      const scalar: TablesUpdate<"strains"> = {};
       if (form.setType) scalar.type = form.type;
       if (form.setTerpene) scalar.dominant_terpene = form.dominant_terpene.trim();
       if (form.setThc) {
@@ -98,7 +98,7 @@ export function BulkEditDialog({ ids, open, onOpenChange, onDone }: Props) {
       // Fast path: scalar-only + replace-only lists → single bulk update
       const allReplace = listOps.every((o) => o.mode === "replace");
       if (allReplace) {
-        const payload: Record<string, unknown> = { ...scalar };
+        const payload: TablesUpdate<"strains"> = { ...scalar };
         for (const o of listOps) payload[o.field] = o.values;
         setProgress({ done: 0, total: 1 });
         const { error } = await supabase.from("strains").update(payload).in("id", ids);
@@ -122,7 +122,7 @@ export function BulkEditDialog({ ids, open, onOpenChange, onDone }: Props) {
       setProgress({ done: 0, total: ids.length });
       for (let i = 0; i < ids.length; i++) {
         const id = ids[i];
-        const payload: Record<string, unknown> = { ...scalar };
+        const payload: TablesUpdate<"strains"> = { ...scalar };
         for (const o of listOps) {
           if (o.mode === "replace") payload[o.field] = o.values;
           else {

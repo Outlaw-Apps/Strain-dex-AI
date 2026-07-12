@@ -140,7 +140,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
               onClick={(e) => e.stopPropagation()}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) handleUpload(f);
+                if (f) handlePicked(f);
                 e.target.value = "";
               }}
             />

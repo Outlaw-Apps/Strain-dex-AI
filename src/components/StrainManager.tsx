@@ -1,16 +1,29 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil } from "lucide-react";
+import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil, Layers } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { DbStrain } from "@/hooks/useStrains";
 import { StrainEditorDialog } from "@/components/StrainEditorDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
 
 export function StrainManager() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
   const [editing, setEditing] = useState<DbStrain | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
 
   const { data: strains = [], isLoading } = useQuery({
     queryKey: ["admin-strains", showDeleted],
@@ -98,7 +111,39 @@ export function StrainManager() {
           />
           Show hidden
         </label>
+        <button
+          onClick={() => {
+            if (selected.size === filtered.length) clearSelection();
+            else setSelected(new Set(filtered.map((s) => s.id)));
+          }}
+          className="text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground hover:opacity-90"
+        >
+          {selected.size === filtered.length && filtered.length > 0 ? "Clear all" : "Select all"}
+        </button>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
+          <p className="text-sm">
+            <span className="font-medium">{selected.size}</span> selected
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={clearSelection}
+              className="text-xs px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:opacity-90"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setBulkOpen(true)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              Bulk edit
+            </button>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10">
@@ -113,6 +158,13 @@ export function StrainManager() {
             const deleted = !!s.deleted_at;
             return (
               <div key={s.id} className="flex items-center gap-3 p-3">
+                <input
+                  type="checkbox"
+                  checked={selected.has(s.id)}
+                  onChange={() => toggleOne(s.id)}
+                  className="w-4 h-4"
+                  aria-label={`Select ${s.name}`}
+                />
                 <img
                   src={s.image_url || "/placeholder.svg"}
                   alt={s.name}
@@ -172,6 +224,13 @@ export function StrainManager() {
         strain={editing}
         open={!!editing}
         onOpenChange={(v) => !v && setEditing(null)}
+      />
+
+      <BulkEditDialog
+        ids={Array.from(selected)}
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        onDone={clearSelection}
       />
     </div>
   );

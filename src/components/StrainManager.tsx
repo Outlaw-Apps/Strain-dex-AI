@@ -146,6 +146,21 @@ export function StrainManager() {
         >
           {selected.size === filtered.length && filtered.length > 0 ? "Clear all" : "Select all"}
         </button>
+        <button
+          onClick={() => {
+            if (!filtered.length) {
+              toast({ title: "Nothing to export", variant: "destructive" });
+              return;
+            }
+            exportStrainsCsv(filtered);
+            toast({ title: `Exported ${filtered.length} strain(s)` });
+          }}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:opacity-90"
+          title="Export all currently filtered strains as CSV"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Export CSV
+        </button>
       </div>
 
       {selected.size > 0 && (
@@ -159,6 +174,17 @@ export function StrainManager() {
               className="text-xs px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:opacity-90"
             >
               Clear
+            </button>
+            <button
+              onClick={() => {
+                const rows = filtered.filter((s) => selected.has(s.id));
+                exportStrainsCsv(rows);
+                toast({ title: `Exported ${rows.length} selected strain(s)` });
+              }}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:opacity-90"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export selected
             </button>
             <button
               onClick={() => setBulkOpen(true)}

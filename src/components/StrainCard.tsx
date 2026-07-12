@@ -21,6 +21,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const badgeClass =
     strain.type === "Indica"

@@ -196,16 +196,16 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
               </div>
 
               {/* Detail grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
                 {/* Aromas */}
-                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
                   <div className="flex items-center gap-2">
                     <Droplets className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Aroma</h4>
+                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Aroma</h4>
                   </div>
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="space-y-2">
                     {strain.aromas.map((aroma) => (
-                      <div key={aroma} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <div key={aroma} className="flex items-center gap-2 text-sm text-muted-foreground">
                         {aromaIcons[aroma] || <Leaf className="w-4 h-4" />}
                         <span>{aroma}</span>
                       </div>
@@ -214,10 +214,10 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                 </div>
 
                 {/* Effects */}
-                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Effects</h4>
+                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Effects</h4>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {strain.effects.map((effect) => (
@@ -242,14 +242,14 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                 </div>
 
                 {/* Medical Uses */}
-                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
                   <div className="flex items-center gap-2">
                     <Heart className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Medical</h4>
+                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Medical</h4>
                   </div>
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="space-y-2">
                     {strain.medical_uses.map((use) => (
-                      <div key={use} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <div key={use} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Heart className="w-3 h-3 text-primary/50" />
                         <span>{use}</span>
                       </div>
@@ -258,14 +258,14 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                 </div>
 
                 {/* Taste */}
-                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
                   <div className="flex items-center gap-2">
                     <Apple className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Taste</h4>
+                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Taste</h4>
                   </div>
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="space-y-2">
                     {strain.tastes.map((taste) => (
-                      <div key={taste} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
                         {aromaIcons[taste] || <Leaf className="w-4 h-4" />}
                         <span>{taste}</span>
                       </div>
@@ -274,12 +274,12 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                 </div>
 
                 {/* Appearance */}
-                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
                   <div className="flex items-center gap-2">
                     <Eye className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Appearance</h4>
+                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Appearance</h4>
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {strain.type === "Indica"
                       ? "Dense, chunky buds with deep green hues and often purple undertones."
                       : strain.type === "Sativa"
@@ -289,12 +289,12 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                 </div>
 
                 {/* Genetics */}
-                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
                   <div className="flex items-center gap-2">
                     <Dna className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Genetics</h4>
+                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Genetics</h4>
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {strain.genetics || "Lineage unknown"}
                   </p>
                 </div>

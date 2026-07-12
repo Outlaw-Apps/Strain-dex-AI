@@ -224,6 +224,33 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                     ))}
                   </div>
                 </div>
+
+                {/* Appearance */}
+                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-primary" />
+                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Appearance</h4>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {strain.type === "Indica"
+                      ? "Dense, chunky buds with deep green hues and often purple undertones."
+                      : strain.type === "Sativa"
+                      ? "Long, wispy buds in bright, light-green shades with vivid orange pistils."
+                      : "Balanced structure with medium-density buds, rich green color, and frosty trichomes."}
+                  </p>
+                </div>
+
+                {/* Genetics */}
+                <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Dna className="w-4 h-4 text-primary" />
+                    <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Genetics</h4>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {strain.genetics || "Lineage unknown"}
+                  </p>
+                </div>
+                </div>
               </div>
             </div>
           </motion.div>

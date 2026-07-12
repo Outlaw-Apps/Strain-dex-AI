@@ -96,6 +96,7 @@ const negativeEffectIcons: Record<string, React.ReactNode> = {
 };
 
 const defaultAromaIcon = <Droplets className="w-4 h-4 text-primary/60" aria-label="Unmapped scent" />;
+const defaultTasteIcon = <Apple className="w-4 h-4 text-primary/60" aria-label="Unmapped taste" />;
 
 const appearanceIcons: Record<string, React.ReactNode> = {
   Purple: <Grape className="w-3.5 h-3.5 text-violet-400" />,
@@ -329,7 +330,7 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                   <div className="space-y-2">
                     {strain.tastes.map((taste) => (
                       <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[taste] || defaultAromaIcon}
+                        {aromaIcons[taste] || defaultTasteIcon}
                         <span>{taste}</span>
                       </div>
                     ))}

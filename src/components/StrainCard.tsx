@@ -175,7 +175,6 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
         </div>
       </div>
 
-      </div>
 
       {pendingFile && (
         <div onClick={(e) => e.stopPropagation()}>

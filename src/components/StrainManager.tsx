@@ -1,11 +1,37 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil, Layers } from "lucide-react";
+import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil, Layers, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { DbStrain } from "@/hooks/useStrains";
 import { StrainEditorDialog } from "@/components/StrainEditorDialog";
 import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { toCSV } from "@/lib/csv";
+
+const EXPORT_HEADERS = ["product_name", "brand", "product_type", "THC%", "CBD%", "description"] as const;
+
+function exportStrainsCsv(rows: DbStrain[]) {
+  const data: (string | number)[][] = [
+    [...EXPORT_HEADERS],
+    ...rows.map((s) => [
+      s.name ?? "",
+      s.genetics ?? "",
+      s.type ?? "",
+      s.thc ?? 0,
+      s.cbd ?? 0,
+      (s.description ?? "").replace(/\s+/g, " ").trim(),
+    ]),
+  ];
+  const csv = toCSV(data);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  a.href = url;
+  a.download = `strains-export-${rows.length}-${ts}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function StrainManager() {
   const qc = useQueryClient();

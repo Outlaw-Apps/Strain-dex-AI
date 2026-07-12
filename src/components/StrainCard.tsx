@@ -30,22 +30,25 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
       ? "badge-sativa"
       : "badge-hybrid";
 
-  const handleUpload = async (file: File) => {
+  const handlePicked = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast({ title: "Please choose an image file", variant: "destructive" });
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      toast({ title: "Image must be under 8MB", variant: "destructive" });
+    if (file.size > 15 * 1024 * 1024) {
+      toast({ title: "Image must be under 15MB", variant: "destructive" });
       return;
     }
+    setPendingFile(file);
+  };
+
+  const handleCroppedUpload = async (blob: Blob) => {
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${strain.id}/${Date.now()}.${ext}`;
+      const path = `${strain.id}/${Date.now()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("strain-images")
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
       if (upErr) throw upErr;
 
       const { data: pub } = supabase.storage.from("strain-images").getPublicUrl(path);
@@ -59,6 +62,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
 
       qc.invalidateQueries({ queryKey: ["strains"] });
       toast({ title: "Image updated", description: strain.name });
+      setPendingFile(null);
     } catch (e: any) {
       toast({
         title: "Upload failed",

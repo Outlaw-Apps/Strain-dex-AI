@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, Trash2, RotateCcw, Sparkles } from "lucide-react";
+import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { DbStrain } from "@/hooks/useStrains";
+import { StrainEditorDialog } from "@/components/StrainEditorDialog";
 
 export function StrainManager() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
+  const [editing, setEditing] = useState<DbStrain | null>(null);
 
   const { data: strains = [], isLoading } = useQuery({
     queryKey: ["admin-strains", showDeleted],
@@ -126,6 +128,13 @@ export function StrainManager() {
                   </p>
                 </div>
                 <button
+                  onClick={() => setEditing(s)}
+                  title="Edit"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => regenImage.mutate(s)}
                   disabled={regenImage.isPending}
                   title="Regenerate image"
@@ -158,6 +167,12 @@ export function StrainManager() {
           })}
         </div>
       )}
+
+      <StrainEditorDialog
+        strain={editing}
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+      />
     </div>
   );
 }

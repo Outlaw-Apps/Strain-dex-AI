@@ -68,12 +68,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0 opacity-10">
+      <header className="relative overflow-hidden border-b border-gold/20">
+        <div className="absolute inset-0 opacity-[0.07]">
           <img src={heroBud} alt="" className="w-full h-full object-cover" fetchPriority="high" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/50 to-background" />
-        <div className="relative px-4 pt-8 pb-6 md:pt-16 md:pb-14">
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/90 to-background" />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[520px] bg-primary/10 blur-[120px] pointer-events-none" />
+
+        <div className="relative px-4 pt-10 pb-8 md:pt-16 md:pb-14 max-w-7xl mx-auto">
           <div className="absolute top-4 right-4 z-10">
             <UserMenu
               showFavoritesOnly={showFavoritesOnly}
@@ -85,17 +87,18 @@ const Index = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-6 md:mb-8"
+            className="text-center mb-8 md:mb-10"
           >
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Leaf className="w-7 h-7 md:w-8 md:h-8 text-primary" />
-              <h1 className="text-3xl md:text-5xl font-display font-bold">
-                <span className="neon-text">Strain</span>{" "}
-                <span className="text-foreground">Dex</span>
-              </h1>
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <Leaf className="w-6 h-6 md:w-7 md:h-7 text-primary drop-shadow-[0_0_10px_hsl(152_100%_50%/0.6)]" />
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-primary">Elite Genetics Archive</span>
             </div>
-            <p className="text-muted-foreground text-xs md:text-base max-w-md mx-auto">
-              Your comprehensive cannabis strain database. Search, discover, and explore.
+            <h1 className="chrome-gold font-display text-5xl md:text-8xl uppercase leading-[0.85] track-tightest">
+              Strain Dex
+            </h1>
+            <div className="mt-4 mx-auto max-w-md hairline-gold" />
+            <p className="text-muted-foreground text-xs md:text-sm max-w-md mx-auto mt-4 font-medium tracking-wide">
+              Bold. Sharp. Clear. A high-potency strain archive.
             </p>
           </motion.div>
 
@@ -103,7 +106,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="space-y-3 md:space-y-4"
+            className="space-y-4 md:space-y-5"
           >
             <SearchBar value={search} onChange={(v) => update({ search: v })} />
             <FilterChips active={filter} onChange={(v) => update({ type: v })} />
@@ -111,17 +114,18 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="flex-1 px-3 md:px-4 py-6 md:py-8 max-w-7xl mx-auto w-full">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
-          <p className="text-sm text-muted-foreground">
-            {filteredStrains.length} strain{filteredStrains.length !== 1 ? "s" : ""} found
+      <main className="flex-1 px-3 md:px-4 py-6 md:py-10 max-w-7xl mx-auto w-full">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 md:mb-8 pb-4 border-b border-gold/15">
+          <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+            <span className="text-gold">{filteredStrains.length}</span> strain{filteredStrains.length !== 1 ? "s" : ""} in archive
           </p>
           <SortSelect value={sort} onChange={(v) => update({ sort: v })} />
         </div>
 
-        <div className="mb-4 md:mb-6">
+        <div className="mb-6 md:mb-8">
           <EffectFilter selected={effectFilters} onChange={(v) => update({ effects: v })} />
         </div>
+
 
         {isError ? (
           <div className="text-center py-16">

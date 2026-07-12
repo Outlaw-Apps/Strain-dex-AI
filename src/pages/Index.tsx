@@ -178,12 +178,8 @@ const Index = () => {
       </main>
 
       <Footer />
-
-      <StrainDetail
-        strain={null}
-        onClose={() => {}}
-      />
     </div>
+
   );
 };
 

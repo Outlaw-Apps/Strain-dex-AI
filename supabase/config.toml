@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.voice-search-transcribe]
 verify_jwt = false
+
+[functions.strains-export]
+verify_jwt = false

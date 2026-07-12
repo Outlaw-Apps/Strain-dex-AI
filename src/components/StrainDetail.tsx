@@ -250,7 +250,6 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                     {strain.genetics || "Lineage unknown"}
                   </p>
                 </div>
-                </div>
               </div>
             </div>
           </motion.div>

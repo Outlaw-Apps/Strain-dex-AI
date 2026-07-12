@@ -12,6 +12,7 @@ export function useStrains() {
       const { data, error } = await supabase
         .from("strains")
         .select("*")
+        .is("deleted_at", null)
         .order("name");
       if (error) throw error;
       return data as DbStrain[];

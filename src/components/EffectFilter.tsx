@@ -20,23 +20,23 @@ export function EffectFilter({ selected, onChange }: EffectFilterProps) {
   };
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Effects</p>
-      <div className="flex flex-wrap gap-1.5">
+    <div className="space-y-3">
+      <p className="text-[10px] text-gold font-black uppercase tracking-[0.3em]">Target Effects</p>
+      <div className="flex flex-wrap gap-2">
         {allEffects.map((effect) => {
           const active = selected.includes(effect);
           return (
             <button
               key={effect}
               onClick={() => toggle(effect)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-all ${
                 active
-                  ? "bg-primary/20 text-primary border border-primary/40"
-                  : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent"
+                  ? "border-primary text-primary bg-primary/5 shadow-[inset_0_0_10px_hsl(152_100%_50%/0.2)]"
+                  : "border-gold/20 text-muted-foreground hover:border-primary/50 hover:text-primary"
               }`}
             >
               {effect}
-              {active && <X className="w-3 h-3 inline ml-1" />}
+              {active && <X className="w-3 h-3 inline ml-1.5 -mt-0.5" />}
             </button>
           );
         })}

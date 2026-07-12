@@ -7,7 +7,7 @@ interface SortSelectProps {
 }
 
 const options: { label: string; value: SortOption }[] = [
-  { label: "Name A-Z", value: "name" },
+  { label: "Name A→Z", value: "name" },
   { label: "THC High→Low", value: "thc-desc" },
   { label: "THC Low→High", value: "thc-asc" },
   { label: "CBD High→Low", value: "cbd-desc" },
@@ -16,14 +16,15 @@ const options: { label: string; value: SortOption }[] = [
 export function SortSelect({ value, onChange }: SortSelectProps) {
   return (
     <div className="flex items-center gap-2">
-      <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+      <ArrowUpDown className="w-3.5 h-3.5 text-gold" />
+      <span className="text-[10px] font-black uppercase tracking-widest text-gold">Sort:</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as SortOption)}
-        className="bg-card border border-border rounded-xl px-3 py-2 text-sm text-foreground font-body outline-none focus:border-primary transition-colors"
+        className="bg-transparent border-b border-gold/40 focus:border-gold px-2 py-1 text-[10px] font-black uppercase tracking-widest text-foreground outline-none transition-colors cursor-pointer"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value} className="bg-background text-foreground">{o.label}</option>
         ))}
       </select>
     </div>

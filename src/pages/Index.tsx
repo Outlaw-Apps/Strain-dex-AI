@@ -29,6 +29,17 @@ const Index = () => {
   const { data: strains = [], isLoading } = useStrains();
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleToggleFavorite = (id: string) => {
+    if (!user) {
+      toast({ title: "Sign in to save favorites" });
+      navigate("/auth");
+      return;
+    }
+    toggleFavorite(id);
+  };
+
 
   const filteredStrains = useMemo(() => {
     let result = strains.filter((s) => {
@@ -136,7 +147,8 @@ const Index = () => {
                 index={i}
                 onClick={() => setSelectedStrain(strain)}
                 isFavorite={isFavorite(strain.id)}
-                onToggleFavorite={user ? () => toggleFavorite(strain.id) : undefined}
+                onToggleFavorite={() => handleToggleFavorite(strain.id)}
+
               />
             ))}
           </div>
@@ -154,7 +166,8 @@ const Index = () => {
         strain={selectedStrain}
         onClose={() => setSelectedStrain(null)}
         isFavorite={selectedStrain ? isFavorite(selectedStrain.id) : false}
-        onToggleFavorite={user && selectedStrain ? () => toggleFavorite(selectedStrain.id) : undefined}
+        onToggleFavorite={selectedStrain ? () => handleToggleFavorite(selectedStrain.id) : undefined}
+
       />
     </div>
   );

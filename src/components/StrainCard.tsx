@@ -121,7 +121,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
                 <Heart className={`w-4 h-4 ${isFavorite ? "fill-primary text-primary" : "text-foreground/70"}`} />
               </button>
             )}
-            <span className={`inline-flex items-center justify-center min-w-[54px] md:min-w-[62px] px-2 md:px-2.5 py-[3px] md:py-1 text-[10px] md:text-[11px] font-black uppercase leading-none tracking-[0.18em] ${badgeClass}`}>
+            <span className={`inline-flex items-center justify-center min-w-[50px] md:min-w-[54px] px-1.5 md:px-2 py-[3px] md:py-1 text-[10px] md:text-[10px] font-black uppercase leading-none tracking-[0.14em] md:tracking-[0.16em] ${badgeClass}`}>
               {strain.type}
             </span>
           </div>

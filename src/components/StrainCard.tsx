@@ -80,81 +80,112 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.4 }}
       onClick={onClick}
-      className="group cursor-pointer rounded-2xl bg-card border border-border overflow-hidden strain-card-hover"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${strain.name}`}
+      className="group relative cursor-pointer outline-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] focus-visible:-translate-y-0.5"
     >
-      <div className="aspect-square bg-secondary relative overflow-hidden">
-        {strain.image_url ? (
-          <img
-            src={strain.image_url}
-            alt={strain.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <Leaf className="w-12 h-12 md:w-16 md:h-16 text-primary/30 group-hover:text-primary/50 transition-colors duration-300" />
-          </div>
-        )}
-        <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-center gap-1.5">
-          {onToggleFavorite && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-              className="p-1.5 rounded-full glass hover:bg-muted/80 transition-colors"
-            >
-              <Heart className={`w-4 h-4 ${isFavorite ? "fill-primary text-primary" : "text-foreground/70"}`} />
-            </button>
+      {/* Emerald glow behind the card */}
+      <div className="pointer-events-none absolute -inset-2 bg-primary/10 blur-2xl opacity-40 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 group-active:bg-primary/20" />
+
+      <div className="relative bg-card border border-gold/30 transition-colors duration-300 overflow-hidden group-hover:border-gold group-focus-visible:border-primary group-focus-visible:ring-2 group-focus-visible:ring-primary group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background group-active:border-primary">
+
+        <div className="aspect-square bg-secondary relative overflow-hidden">
+          {strain.image_url ? (
+            <img
+              src={strain.image_url}
+              alt={strain.name}
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-500"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
+              <Leaf className="w-12 h-12 md:w-16 md:h-16 text-primary/30 group-hover:text-primary/60 transition-colors duration-300" />
+            </div>
           )}
-          <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${badgeClass}`}>
-            {strain.type}
-          </span>
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-card to-transparent" />
+
+          <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-center gap-1.5">
+            {onToggleFavorite && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+                className="p-1.5 bg-background/70 border border-gold/30 hover:border-gold transition-colors"
+                aria-label="Toggle favorite"
+              >
+                <Heart className={`w-4 h-4 ${isFavorite ? "fill-primary text-primary" : "text-foreground/70"}`} />
+              </button>
+            )}
+            <span className={`inline-flex items-center justify-center min-w-[54px] md:min-w-[62px] px-2 md:px-2.5 py-[3px] md:py-1 text-[10px] md:text-[11px] font-black uppercase leading-none tracking-[0.18em] ${badgeClass}`}>
+              {strain.type}
+            </span>
+          </div>
+
+          {isAdmin && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                disabled={uploading}
+                aria-label={strain.image_url ? "Replace image" : "Upload image"}
+                className="absolute bottom-2 left-2 md:bottom-3 md:left-3 flex items-center gap-1.5 px-2.5 py-1 bg-background/80 border border-gold/40 hover:border-gold transition-colors text-[10px] md:text-[11px] font-black uppercase tracking-widest text-gold-light opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-100"
+              >
+                {uploading ? (
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>Uploading…</span></>
+                ) : (
+                  <><ImagePlus className="w-3.5 h-3.5" /><span>{strain.image_url ? "Replace" : "Upload"}</span></>
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handlePicked(f);
+                  e.target.value = "";
+                }}
+              />
+            </>
+          )}
         </div>
 
-        {isAdmin && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-              disabled={uploading}
-              aria-label={strain.image_url ? "Replace image" : "Upload image"}
-              className="absolute bottom-2 left-2 md:bottom-3 md:left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full glass hover:bg-muted/80 transition-colors text-[11px] md:text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-100"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Uploading…</span>
-                </>
-              ) : (
-                <>
-                  <ImagePlus className="w-3.5 h-3.5" />
-                  <span>{strain.image_url ? "Replace" : "Upload"}</span>
-                </>
-              )}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handlePicked(f);
-                e.target.value = "";
-              }}
-            />
-          </>
-        )}
+        <div className="p-4 md:p-5 space-y-3 md:space-y-4">
+          <h3 className="font-display text-sm md:text-lg uppercase leading-[0.95] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto">
+            {strain.name}
+          </h3>
+          <div className="hairline-gold" />
+          <div className="flex items-stretch gap-3 md:gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">THC</p>
+              <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
+                {strain.thc}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
+              </p>
+            </div>
+            <div className="w-px bg-gold/20" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">CBD</p>
+              <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
+                {strain.cbd}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-baseline justify-between gap-2 pt-2 border-t border-gold/10">
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none">Terpene</p>
+            <p className="text-[11px] md:text-xs font-black uppercase tracking-[0.06em] text-gold-light truncate leading-none">
+              {strain.dominant_terpene}
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="p-3 md:p-4">
-        <h3 className="font-display font-semibold text-sm md:text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
-          {strain.name}
-        </h3>
-        <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1">
-          THC {strain.thc}% · {strain.dominant_terpene}
-        </p>
-      </div>
+
+
       {pendingFile && (
         <div onClick={(e) => e.stopPropagation()}>
           <ImageCropperDialog

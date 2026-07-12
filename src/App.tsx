@@ -8,12 +8,16 @@ import { Loader2 } from "lucide-react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AdminGuard } from "@/components/AdminGuard";
+import { AgeGate } from "@/components/AgeGate";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const BulkUpload = lazy(() => import("./pages/BulkUpload"));
 const StrainPage = lazy(() => import("./pages/StrainPage"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,11 +42,14 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <AgeGate />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/strain/:slug" element={<StrainPage />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route
                   path="/admin/bulk-upload"
                   element={
@@ -57,6 +64,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
+
     </QueryClientProvider>
   </ErrorBoundary>
 );

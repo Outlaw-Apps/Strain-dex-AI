@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, Trash2, RotateCcw, Sparkles } from "lucide-react";
+import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { DbStrain } from "@/hooks/useStrains";
+import { StrainEditorDialog } from "@/components/StrainEditorDialog";
 
 export function StrainManager() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
+  const [editing, setEditing] = useState<DbStrain | null>(null);
 
   const { data: strains = [], isLoading } = useQuery({
     queryKey: ["admin-strains", showDeleted],

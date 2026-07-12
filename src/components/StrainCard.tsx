@@ -151,21 +151,22 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
             {strain.name}
           </h3>
           <div className="hairline-gold" />
-          <div className="grid grid-cols-[auto_1px_auto_1fr] items-end gap-3 md:gap-4">
+          <div className="flex items-stretch gap-3 md:gap-4">
             <div className="min-w-0">
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">THC</p>
               <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
                 {strain.thc}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
               </p>
             </div>
-            <div className="self-stretch bg-gold/20" />
+            <div className="w-px bg-gold/20" />
             <div className="min-w-0">
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">CBD</p>
               <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
                 {strain.cbd}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
               </p>
             </div>
-            <div className="text-right min-w-0">
+            <div className="w-px bg-gold/20" />
+            <div className="min-w-0 flex-1 text-right">
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">Terpene</p>
               <p className="text-[11px] md:text-xs font-black uppercase tracking-[0.04em] text-foreground truncate leading-none">
                 {strain.dominant_terpene}

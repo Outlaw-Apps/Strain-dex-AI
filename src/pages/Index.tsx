@@ -138,7 +138,7 @@ const Index = () => {
             </button>
           </div>
         ) : isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
                 <div className="aspect-square bg-secondary" />

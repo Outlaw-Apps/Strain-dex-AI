@@ -80,12 +80,22 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.4 }}
       onClick={onClick}
-      className="group relative cursor-pointer"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${strain.name}`}
+      className="group relative cursor-pointer outline-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] focus-visible:-translate-y-0.5"
     >
       {/* Emerald glow behind the card */}
-      <div className="pointer-events-none absolute -inset-2 bg-primary/10 blur-2xl opacity-40 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="pointer-events-none absolute -inset-2 bg-primary/10 blur-2xl opacity-40 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 group-active:bg-primary/20" />
 
-      <div className="relative bg-card border border-gold/30 group-hover:border-gold transition-colors duration-300 overflow-hidden">
+      <div className="relative bg-card border border-gold/30 transition-colors duration-300 overflow-hidden group-hover:border-gold group-focus-visible:border-primary group-focus-visible:ring-2 group-focus-visible:ring-primary group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background group-active:border-primary">
+
         <div className="aspect-square bg-secondary relative overflow-hidden">
           {strain.image_url ? (
             <img

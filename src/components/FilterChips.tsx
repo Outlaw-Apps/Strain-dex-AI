@@ -23,10 +23,11 @@ export function FilterChips({ active, onChange }: FilterChipsProps) {
           <button
             key={filter.value}
             onClick={() => onChange(filter.value)}
-            className={`relative px-5 md:px-6 py-2 md:py-2.5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-200 border ${
+            aria-pressed={isActive}
+            className={`relative px-5 md:px-6 py-2 md:py-2.5 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-200 border outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96] ${
               isActive
-                ? "chrome-gold-bg-h text-background border-transparent shadow-[0_0_20px_hsl(43_76%_54%/0.35)]"
-                : "bg-transparent text-muted-foreground border-gold/25 hover:text-gold-light hover:border-gold"
+                ? "chrome-gold-bg-h text-background border-transparent shadow-[0_0_20px_hsl(43_76%_54%/0.35)] hover:shadow-[0_0_28px_hsl(152_100%_50%/0.45)] active:shadow-[0_0_12px_hsl(152_100%_50%/0.6)]"
+                : "bg-transparent text-muted-foreground border-gold/25 hover:text-primary hover:border-primary hover:shadow-[0_0_18px_hsl(152_100%_50%/0.25)] active:bg-primary/10 active:border-primary active:text-primary"
             }`}
           >
             {isActive && (

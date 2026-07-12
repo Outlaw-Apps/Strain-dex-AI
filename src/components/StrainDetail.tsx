@@ -3,7 +3,7 @@ import {
   X, Leaf, Droplets, Smile, Frown, Heart, Wind,
   Citrus, TreePine, Flame, Sparkles, Apple, Cherry, Grape,
   FlaskConical, Moon, Zap, Brain, Sun, Eye, Dna,
-  Coffee, Candy, Flower2, Nut, Milk, Wheat, Mint,
+  Coffee, Candy, Flower2, Nut, Milk, Wheat,
   AlertCircle, CloudFog, EyeOff, Droplet, HeartCrack, Angry, Skull
 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
@@ -33,9 +33,9 @@ const aromaIcons: Record<string, React.ReactNode> = {
   Mango: <Sun className="w-4 h-4" />,
   Pungent: <Wind className="w-4 h-4" />,
   Woody: <TreePine className="w-4 h-4" />,
-  Herbal: <Mint className="w-4 h-4" />,
-  Mint: <Mint className="w-4 h-4" />,
-  Menthol: <Mint className="w-4 h-4" />,
+  Herbal: <Leaf className="w-4 h-4" />,
+  Mint: <Leaf className="w-4 h-4" />,
+  Menthol: <Leaf className="w-4 h-4" />,
   Grape: <Grape className="w-4 h-4" />,
   Pineapple: <Apple className="w-4 h-4" />,
   Apple: <Apple className="w-4 h-4" />,

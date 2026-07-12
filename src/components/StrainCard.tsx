@@ -111,7 +111,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
                 <Heart className={`w-4 h-4 ${isFavorite ? "fill-primary text-primary" : "text-foreground/70"}`} />
               </button>
             )}
-            <span className={`px-2 md:px-2.5 py-0.5 text-[9px] md:text-[10px] font-black uppercase tracking-widest ${badgeClass}`}>
+            <span className={`inline-flex items-center justify-center min-w-[54px] md:min-w-[62px] px-2 md:px-2.5 py-[3px] md:py-1 text-[10px] md:text-[11px] font-black uppercase leading-none tracking-[0.18em] ${badgeClass}`}>
               {strain.type}
             </span>
           </div>
@@ -146,27 +146,35 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
           )}
         </div>
 
-        <div className="p-4 md:p-5 space-y-3">
-          <h3 className="font-display text-lg md:text-2xl uppercase leading-none track-tightest text-foreground group-hover:chrome-gold transition-colors line-clamp-1">
+        <div className="p-4 md:p-5 space-y-3 md:space-y-4">
+          <h3 className="font-display text-lg md:text-2xl uppercase leading-[0.9] track-tightest text-foreground group-hover:chrome-gold transition-colors line-clamp-1">
             {strain.name}
           </h3>
           <div className="hairline-gold" />
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">THC</p>
-              <p className="text-base md:text-lg font-black text-foreground leading-none">
-                {strain.thc}<span className="text-xs text-gold ml-0.5">%</span>
+          <div className="flex items-stretch gap-3 md:gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">THC</p>
+              <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
+                {strain.thc}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Terpene</p>
-              <p className="text-[11px] md:text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[110px]">
-                {strain.dominant_terpene}
+            <div className="w-px bg-gold/20" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">CBD</p>
+              <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
+                {strain.cbd}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
               </p>
             </div>
           </div>
+          <div className="flex items-baseline justify-between gap-2 pt-2 border-t border-gold/10">
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none">Terpene</p>
+            <p className="text-[11px] md:text-xs font-black uppercase tracking-[0.06em] text-gold-light truncate leading-none">
+              {strain.dominant_terpene}
+            </p>
+          </div>
         </div>
       </div>
+
 
       {pendingFile && (
         <div onClick={(e) => e.stopPropagation()}>

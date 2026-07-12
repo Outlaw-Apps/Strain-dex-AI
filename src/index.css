@@ -107,19 +107,22 @@
   .strain-card-hover { transition: all .35s cubic-bezier(.4,0,.2,1); }
 
   .badge-indica {
-    background: hsl(var(--indica) / 0.15);
-    color: hsl(var(--indica));
-    border: 1px solid hsl(var(--indica) / 0.6);
+    background: hsl(var(--indica) / 0.18);
+    color: hsl(270 80% 78%);
+    border: 1px solid hsl(var(--indica) / 0.7);
+    text-shadow: 0 0 8px hsl(var(--indica) / 0.35);
   }
   .badge-sativa {
-    background: hsl(var(--sativa) / 0.12);
+    background: hsl(var(--sativa) / 0.14);
     color: hsl(var(--sativa));
     border: 1px solid hsl(var(--sativa));
+    text-shadow: 0 0 8px hsl(var(--sativa) / 0.45);
   }
   .badge-hybrid {
-    background: hsl(var(--hybrid) / 0.15);
+    background: hsl(var(--hybrid) / 0.18);
     color: hsl(var(--hybrid));
-    border: 1px solid hsl(var(--hybrid) / 0.7);
+    border: 1px solid hsl(var(--hybrid) / 0.8);
+    text-shadow: 0 0 8px hsl(var(--hybrid) / 0.35);
   }
 
   .track-tightest { letter-spacing: -0.04em; }

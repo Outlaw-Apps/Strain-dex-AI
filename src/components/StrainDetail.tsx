@@ -97,6 +97,66 @@ const negativeEffectIcons: Record<string, React.ReactNode> = {
 
 const defaultAromaIcon = <Droplets className="w-4 h-4 text-primary/60" aria-label="Unmapped scent" />;
 
+const appearanceIcons: Record<string, React.ReactNode> = {
+  Purple: <Grape className="w-3.5 h-3.5 text-violet-400" />,
+  Green: <Leaf className="w-3.5 h-3.5 text-emerald-400" />,
+  Orange: <Flame className="w-3.5 h-3.5 text-orange-400" />,
+  Amber: <Flame className="w-3.5 h-3.5 text-amber-400" />,
+  Frosty: <Sparkles className="w-3.5 h-3.5 text-cyan-300" />,
+  Trichomes: <Sparkles className="w-3.5 h-3.5 text-cyan-300" />,
+  Dense: <FlaskConical className="w-3.5 h-3.5 text-primary/70" />,
+  Chunky: <FlaskConical className="w-3.5 h-3.5 text-primary/70" />,
+  Wispy: <Wind className="w-3.5 h-3.5 text-primary/70" />,
+  Long: <Wind className="w-3.5 h-3.5 text-primary/70" />,
+  Pistils: <Flower2 className="w-3.5 h-3.5 text-orange-300" />,
+};
+const defaultAppearanceIcon = (
+  <Eye className="w-3.5 h-3.5 text-primary/60" aria-label="General appearance trait" />
+);
+
+const geneticsIcons: Record<string, React.ReactNode> = {
+  Kush: <TreePine className="w-3.5 h-3.5 text-emerald-400" />,
+  Haze: <Sun className="w-3.5 h-3.5 text-amber-300" />,
+  Diesel: <Flame className="w-3.5 h-3.5 text-orange-400" />,
+  Blueberry: <Grape className="w-3.5 h-3.5 text-blue-400" />,
+  OG: <Leaf className="w-3.5 h-3.5 text-primary" />,
+  Cookies: <Candy className="w-3.5 h-3.5 text-pink-400" />,
+  Cake: <Milk className="w-3.5 h-3.5 text-primary/80" />,
+  Gelato: <Milk className="w-3.5 h-3.5 text-primary/80" />,
+  Cheese: <Milk className="w-3.5 h-3.5 text-yellow-300" />,
+  Skunk: <Wind className="w-3.5 h-3.5 text-emerald-300" />,
+  Purple: <Grape className="w-3.5 h-3.5 text-violet-400" />,
+  Lemon: <Citrus className="w-3.5 h-3.5 text-yellow-300" />,
+  Cherry: <Cherry className="w-3.5 h-3.5 text-rose-400" />,
+  Glue: <FlaskConical className="w-3.5 h-3.5 text-primary/70" />,
+  Runtz: <Candy className="w-3.5 h-3.5 text-pink-400" />,
+  Zkittlez: <Candy className="w-3.5 h-3.5 text-fuchsia-400" />,
+};
+const defaultGeneticsIcon = (
+  <Dna className="w-3.5 h-3.5 text-primary/60" aria-label="Unmapped lineage" />
+);
+
+const iconForKeyword = (
+  text: string,
+  map: Record<string, React.ReactNode>,
+  fallback: React.ReactNode
+) => {
+  const hit = Object.keys(map).find((k) => text.toLowerCase().includes(k.toLowerCase()));
+  return hit ? map[hit] : fallback;
+};
+
+const splitParents = (g: string) =>
+  g
+    .split(/\s*(?:x|×|\/|,|\+)\s*/i)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+const APPEARANCE_KEYWORDS = [
+  "Purple", "Green", "Orange", "Amber", "Frosty", "Trichomes",
+  "Dense", "Chunky", "Wispy", "Long", "Pistils",
+];
+
+
 
 export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: StrainDetailProps) {
   if (!strain) return null;
@@ -282,13 +342,33 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                     <Eye className="w-4 h-4 text-primary" />
                     <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Appearance</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {strain.type === "Indica"
-                      ? "Dense, chunky buds with deep green hues and often purple undertones."
-                      : strain.type === "Sativa"
-                      ? "Long, wispy buds in bright, light-green shades with vivid orange pistils."
-                      : "Balanced structure with medium-density buds, rich green color, and frosty trichomes."}
-                  </p>
+                  {(() => {
+                    const text =
+                      strain.type === "Indica"
+                        ? "Dense, chunky buds with deep green hues and often purple undertones."
+                        : strain.type === "Sativa"
+                        ? "Long, wispy buds in bright, light-green shades with vivid orange pistils."
+                        : "Balanced structure with medium-density buds, rich green color, and frosty trichomes.";
+                    const matched = APPEARANCE_KEYWORDS.filter((k) =>
+                      text.toLowerCase().includes(k.toLowerCase())
+                    );
+                    return (
+                      <>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {(matched.length ? matched : ["Trait"]).map((k) => (
+                            <span
+                              key={k}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/40 border border-border text-[11px] text-muted-foreground"
+                            >
+                              {appearanceIcons[k] ?? defaultAppearanceIcon}
+                              <span>{k}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Genetics */}
@@ -297,9 +377,24 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                     <Dna className="w-4 h-4 text-primary" />
                     <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Genetics</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {strain.genetics || "Lineage unknown"}
-                  </p>
+                  {strain.genetics ? (
+                    <div className="space-y-1.5">
+                      {splitParents(strain.genetics).map((parent) => (
+                        <div
+                          key={parent}
+                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                        >
+                          {iconForKeyword(parent, geneticsIcons, defaultGeneticsIcon)}
+                          <span>{parent}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      {defaultGeneticsIcon}
+                      <span>Lineage unknown</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

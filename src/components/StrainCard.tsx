@@ -157,7 +157,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
         </div>
 
         <div className="p-4 md:p-5 space-y-3 md:space-y-4">
-          <h3 className="font-display text-lg md:text-2xl uppercase leading-[0.9] track-tightest text-foreground group-hover:chrome-gold transition-colors line-clamp-1">
+          <h3 className="font-display text-sm md:text-lg uppercase leading-[0.95] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto">
             {strain.name}
           </h3>
           <div className="hairline-gold" />

@@ -1,32 +1,27 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Leaf } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterChips } from "@/components/FilterChips";
 import { StrainCard } from "@/components/StrainCard";
-import { StrainDetail } from "@/components/StrainDetail";
+
 import { SortSelect } from "@/components/SortSelect";
 import { EffectFilter } from "@/components/EffectFilter";
 import { UserMenu } from "@/components/UserMenu";
-import { useStrains, type DbStrain, type SortOption } from "@/hooks/useStrains";
+import { Footer } from "@/components/Footer";
+import { useStrains, type DbStrain } from "@/hooks/useStrains";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { toast } from "@/hooks/use-toast";
 import heroBud from "@/assets/hero-bud.jpg";
 
-
-type StrainTypeFilter = "Sativa" | "Indica" | "Hybrid" | "All";
-
 const Index = () => {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<StrainTypeFilter>("All");
-  const [sort, setSort] = useState<SortOption>("name");
-  const [effectFilters, setEffectFilters] = useState<string[]>([]);
-  const [selectedStrain, setSelectedStrain] = useState<DbStrain | null>(null);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const filters = useUrlFilters();
+  const { search, type: filter, sort, effects: effectFilters, favorites: showFavoritesOnly, update } = filters;
 
-  const { data: strains = [], isLoading } = useStrains();
+  const { data: strains = [], isLoading, isError, refetch } = useStrains();
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +35,10 @@ const Index = () => {
     toggleFavorite(id);
   };
 
+  const openStrain = (strain: DbStrain) => {
+    // Update URL so refresh/share keeps context; StrainPage renders the sheet
+    navigate(`/strain/${strain.name.toLowerCase().trim().replace(/['']/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`);
+  };
 
   const filteredStrains = useMemo(() => {
     let result = strains.filter((s) => {
@@ -64,20 +63,21 @@ const Index = () => {
     return result;
   }, [strains, search, filter, sort, effectFilters, showFavoritesOnly, favoriteIds]);
 
+  const hasActiveFilters =
+    !!search || filter !== "All" || effectFilters.length > 0 || showFavoritesOnly;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
+    <div className="min-h-screen flex flex-col bg-background">
       <header className="relative overflow-hidden border-b border-border">
         <div className="absolute inset-0 opacity-10">
-          <img src={heroBud} alt="" className="w-full h-full object-cover" />
+          <img src={heroBud} alt="" className="w-full h-full object-cover" fetchPriority="high" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-background/50 to-background" />
         <div className="relative px-4 pt-8 pb-6 md:pt-16 md:pb-14">
-          {/* Top bar */}
           <div className="absolute top-4 right-4 z-10">
             <UserMenu
               showFavoritesOnly={showFavoritesOnly}
-              onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              onToggleFavorites={() => update({ favorites: !showFavoritesOnly })}
             />
           </div>
 
@@ -105,28 +105,35 @@ const Index = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="space-y-3 md:space-y-4"
           >
-            <SearchBar value={search} onChange={setSearch} />
-            <FilterChips active={filter} onChange={setFilter} />
+            <SearchBar value={search} onChange={(v) => update({ search: v })} />
+            <FilterChips active={filter} onChange={(v) => update({ type: v })} />
           </motion.div>
         </div>
       </header>
 
-      {/* Results */}
-      <main className="px-3 md:px-4 py-6 md:py-8 max-w-7xl mx-auto">
-        {/* Controls row */}
+      <main className="flex-1 px-3 md:px-4 py-6 md:py-8 max-w-7xl mx-auto w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
           <p className="text-sm text-muted-foreground">
             {filteredStrains.length} strain{filteredStrains.length !== 1 ? "s" : ""} found
           </p>
-          <SortSelect value={sort} onChange={setSort} />
+          <SortSelect value={sort} onChange={(v) => update({ sort: v })} />
         </div>
 
-        {/* Effect filters */}
         <div className="mb-4 md:mb-6">
-          <EffectFilter selected={effectFilters} onChange={setEffectFilters} />
+          <EffectFilter selected={effectFilters} onChange={(v) => update({ effects: v })} />
         </div>
 
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground mb-3">Couldn't load strains.</p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium"
+            >
+              Try again
+            </button>
+          </div>
+        ) : isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="rounded-2xl bg-card border border-border overflow-hidden animate-pulse">
@@ -145,10 +152,9 @@ const Index = () => {
                 key={strain.id}
                 strain={strain}
                 index={i}
-                onClick={() => setSelectedStrain(strain)}
+                onClick={() => openStrain(strain)}
                 isFavorite={isFavorite(strain.id)}
                 onToggleFavorite={() => handleToggleFavorite(strain.id)}
-
               />
             ))}
           </div>
@@ -157,19 +163,23 @@ const Index = () => {
             <Leaf className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-display text-base md:text-lg">No strains found</p>
             <p className="text-muted-foreground/60 text-xs md:text-sm mt-1">Try adjusting your search or filters</p>
+            {hasActiveFilters && (
+              <button
+                onClick={() =>
+                  update({ search: "", type: "All", effects: [], favorites: false })
+                }
+                className="mt-4 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-muted transition"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         )}
       </main>
 
-      {/* Detail Modal */}
-      <StrainDetail
-        strain={selectedStrain}
-        onClose={() => setSelectedStrain(null)}
-        isFavorite={selectedStrain ? isFavorite(selectedStrain.id) : false}
-        onToggleFavorite={selectedStrain ? () => handleToggleFavorite(selectedStrain.id) : undefined}
-
-      />
+      <Footer />
     </div>
+
   );
 };
 

@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { parseCSV, toCSV } from "@/lib/csv";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StrainManager } from "@/components/StrainManager";
 
 const COLUMNS = [
   "name",
@@ -239,12 +241,20 @@ export default function BulkUpload() {
         </button>
 
         <header className="space-y-2">
-          <h1 className="text-3xl font-bold">Bulk upload strains</h1>
+          <h1 className="text-3xl font-bold">Admin</h1>
           <p className="text-muted-foreground">
-            Download the template, fill it in, and upload. Use <code>|</code> to separate list values
-            (e.g. <code>Relaxed|Happy|Euphoric</code>).
+            Manage the strain catalog: bulk import, AI research, or edit existing entries.
           </p>
         </header>
+
+        <Tabs defaultValue="csv" className="space-y-6">
+          <TabsList className="grid grid-cols-3 w-full max-w-md">
+            <TabsTrigger value="csv">CSV Upload</TabsTrigger>
+            <TabsTrigger value="ai">AI Import</TabsTrigger>
+            <TabsTrigger value="manage">Manage</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="csv" className="space-y-6">
 
         <section className="rounded-2xl border border-border bg-card p-5 space-y-4">
           <div className="flex flex-wrap items-center gap-3">

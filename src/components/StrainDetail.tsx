@@ -219,18 +219,24 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                     <Sparkles className="w-4 h-4 text-primary" />
                     <h4 className="font-display font-semibold text-xs sm:text-sm text-foreground">Effects</h4>
                   </div>
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {strain.effects.map((effect) => (
-                      <div key={effect} className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm ${effectColors[effect] || "text-muted-foreground"}`}>
-                        {effectIcons[effect] || <Smile className="w-4 h-4" />}
+                      <span
+                        key={effect}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] sm:text-xs font-medium ${effectColors[effect] || positiveEffectDefault}`}
+                      >
+                        {effectIcons[effect] || <Smile className="w-3 h-3" />}
                         <span>{effect}</span>
-                      </div>
+                      </span>
                     ))}
                     {strain.negative_effects.map((effect) => (
-                      <div key={effect} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-destructive/70">
-                        <Frown className="w-4 h-4" />
+                      <span
+                        key={effect}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] sm:text-xs font-medium ${negativeEffectClass}`}
+                      >
+                        {negativeEffectIcons[effect] || <Frown className="w-3 h-3" />}
                         <span>{effect}</span>
-                      </div>
+                      </span>
                     ))}
                   </div>
                 </div>

@@ -111,7 +111,39 @@ export function StrainManager() {
           />
           Show hidden
         </label>
+        <button
+          onClick={() => {
+            if (selected.size === filtered.length) clearSelection();
+            else setSelected(new Set(filtered.map((s) => s.id)));
+          }}
+          className="text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground hover:opacity-90"
+        >
+          {selected.size === filtered.length && filtered.length > 0 ? "Clear all" : "Select all"}
+        </button>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
+          <p className="text-sm">
+            <span className="font-medium">{selected.size}</span> selected
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={clearSelection}
+              className="text-xs px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground hover:opacity-90"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setBulkOpen(true)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              Bulk edit
+            </button>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10">

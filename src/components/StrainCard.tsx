@@ -156,33 +156,34 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
           )}
         </div>
 
-        <div className="p-4 md:p-5 space-y-3 md:space-y-4">
-          <h3 className="font-display text-sm md:text-lg uppercase leading-[0.95] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto">
+        <div className="p-3.5 md:p-4 space-y-3">
+          <h3 className="font-display text-sm md:text-[15px] xl:text-base uppercase leading-[1] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto min-h-[2.1em]">
             {strain.name}
           </h3>
           <div className="hairline-gold" />
-          <div className="flex items-stretch gap-3 md:gap-4">
+          <div className="flex items-stretch gap-2 md:gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">THC</p>
-              <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
-                {strain.thc}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1.5">THC</p>
+              <p className="text-base md:text-lg font-black text-foreground leading-none tabular-nums">
+                {strain.thc}<span className="text-[10px] md:text-[11px] text-gold font-black ml-0.5 align-top">%</span>
               </p>
             </div>
             <div className="w-px bg-gold/20" />
             <div className="min-w-0 flex-1">
-              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none mb-1.5">CBD</p>
-              <p className="text-lg md:text-xl font-black text-foreground leading-none tabular-nums">
-                {strain.cbd}<span className="text-[11px] md:text-xs text-gold font-black ml-0.5 align-top">%</span>
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1.5">CBD</p>
+              <p className="text-base md:text-lg font-black text-foreground leading-none tabular-nums">
+                {strain.cbd}<span className="text-[10px] md:text-[11px] text-gold font-black ml-0.5 align-top">%</span>
               </p>
             </div>
           </div>
-          <div className="flex items-baseline justify-between gap-2 pt-2 border-t border-gold/10">
-            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground leading-none">Terpene</p>
-            <p className="text-[11px] md:text-xs font-black uppercase tracking-[0.06em] text-gold-light truncate leading-none">
+          <div className="flex items-baseline justify-between gap-2 pt-2 border-t border-gold/10 min-w-0">
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none shrink-0">Terpene</p>
+            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.05em] text-gold-light truncate leading-none min-w-0">
               {strain.dominant_terpene}
             </p>
           </div>
         </div>
+
       </div>
 
 

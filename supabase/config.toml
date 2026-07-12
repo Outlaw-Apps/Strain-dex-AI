@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.cannlytics-sync]
 verify_jwt = false
+
+[functions.voice-search-transcribe]
+verify_jwt = false

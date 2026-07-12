@@ -75,6 +75,7 @@ export type Database = {
           aromas: string[]
           cbd: number
           created_at: string
+          deleted_at: string | null
           description: string
           dominant_terpene: string
           effects: string[]
@@ -93,6 +94,7 @@ export type Database = {
           aromas?: string[]
           cbd?: number
           created_at?: string
+          deleted_at?: string | null
           description?: string
           dominant_terpene?: string
           effects?: string[]
@@ -111,6 +113,7 @@ export type Database = {
           aromas?: string[]
           cbd?: number
           created_at?: string
+          deleted_at?: string | null
           description?: string
           dominant_terpene?: string
           effects?: string[]

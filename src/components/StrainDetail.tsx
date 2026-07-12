@@ -95,6 +95,9 @@ const negativeEffectIcons: Record<string, React.ReactNode> = {
   Irritable: <Angry className="w-4 h-4" />,
 };
 
+const defaultAromaIcon = <Droplets className="w-4 h-4 text-primary/60" aria-label="Unmapped scent" />;
+
+
 export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: StrainDetailProps) {
   if (!strain) return null;
 
@@ -206,7 +209,7 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                   <div className="space-y-2">
                     {strain.aromas.map((aroma) => (
                       <div key={aroma} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[aroma] || <Leaf className="w-4 h-4" />}
+                        {aromaIcons[aroma] || defaultAromaIcon}
                         <span>{aroma}</span>
                       </div>
                     ))}
@@ -266,7 +269,7 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                   <div className="space-y-2">
                     {strain.tastes.map((taste) => (
                       <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[taste] || <Leaf className="w-4 h-4" />}
+                        {aromaIcons[taste] || defaultAromaIcon}
                         <span>{taste}</span>
                       </div>
                     ))}

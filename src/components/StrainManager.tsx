@@ -128,6 +128,13 @@ export function StrainManager() {
                   </p>
                 </div>
                 <button
+                  onClick={() => setEditing(s)}
+                  title="Edit"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => regenImage.mutate(s)}
                   disabled={regenImage.isPending}
                   title="Regenerate image"

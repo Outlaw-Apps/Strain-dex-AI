@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Leaf, Droplets, Smile, Frown, Heart, Wind,
   Citrus, TreePine, Flame, Sparkles, Apple, Cherry, Grape,
-  FlaskConical, Moon, Zap, Brain, Sun
+  FlaskConical, Moon, Zap, Brain, Sun, Eye, Dna
 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
 
@@ -154,7 +154,7 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
               </div>
 
               {/* Detail grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                 {/* Aromas */}
                 <div className="p-3 sm:p-4 rounded-2xl bg-secondary space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">

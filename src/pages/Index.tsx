@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Leaf } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
@@ -11,7 +12,9 @@ import { UserMenu } from "@/components/UserMenu";
 import { useStrains, type DbStrain, type SortOption } from "@/hooks/useStrains";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 import heroBud from "@/assets/hero-bud.jpg";
+
 
 type StrainTypeFilter = "Sativa" | "Indica" | "Hybrid" | "All";
 

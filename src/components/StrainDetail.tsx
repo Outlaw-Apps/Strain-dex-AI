@@ -7,6 +7,9 @@ import {
   AlertCircle, CloudFog, EyeOff, Droplet, HeartCrack, Angry, Skull
 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
+import { ShareButton } from "@/components/ShareButton";
+import { toSlug } from "@/lib/slug";
+
 
 interface StrainDetailProps {
   strain: DbStrain | null;
@@ -199,17 +202,25 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
               {onToggleFavorite && (
                 <button
                   onClick={onToggleFavorite}
+                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                   className="p-2 rounded-full glass hover:bg-muted transition-colors"
                 >
                   <Heart className={`w-5 h-5 ${isFavorite ? "fill-primary text-primary" : "text-foreground"}`} />
                 </button>
               )}
+              <ShareButton
+                title={`${strain.name} — Strain Dex`}
+                text={strain.description?.slice(0, 120)}
+                url={typeof window !== "undefined" ? `${window.location.origin}/strain/${toSlug(strain.name)}` : undefined}
+              />
               <button
                 onClick={onClose}
+                aria-label="Close"
                 className="p-2 rounded-full glass hover:bg-muted transition-colors"
               >
                 <X className="w-5 h-5 text-foreground" />
               </button>
+
             </div>
 
             {/* Header */}

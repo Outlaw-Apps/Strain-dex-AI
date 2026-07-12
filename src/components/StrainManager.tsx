@@ -167,6 +167,12 @@ export function StrainManager() {
           })}
         </div>
       )}
+
+      <StrainEditorDialog
+        strain={editing}
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+      />
     </div>
   );
 }

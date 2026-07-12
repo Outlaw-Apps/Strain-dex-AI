@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Download, Upload, Loader2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,6 +57,53 @@ export default function BulkUpload() {
   const [preview, setPreview] = useState<Record<string, any>[] | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<{ inserted: number; failed: number } | null>(null);
+
+  // AI import
+  const [aiNames, setAiNames] = useState("");
+  const [aiRunning, setAiRunning] = useState(false);
+  const [aiResults, setAiResults] = useState<
+    { name: string; status: "inserted" | "failed"; error?: string }[] | null
+  >(null);
+
+  const handleAiImport = async () => {
+    const names = aiNames
+      .split(/\r?\n|,/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!names.length) {
+      toast({ title: "Enter at least one strain name", variant: "destructive" });
+      return;
+    }
+    setAiRunning(true);
+    setAiResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-strain-import", {
+        body: { names },
+      });
+      if (error) throw error;
+      const results = (data?.results ?? []) as {
+        name: string;
+        status: "inserted" | "failed";
+        error?: string;
+      }[];
+      setAiResults(results);
+      const inserted = results.filter((r) => r.status === "inserted").length;
+      const failed = results.length - inserted;
+      qc.invalidateQueries({ queryKey: ["strains"] });
+      toast({
+        title: failed ? "AI import finished with errors" : "AI import complete",
+        description: `${inserted} inserted, ${failed} failed.`,
+      });
+    } catch (e: any) {
+      toast({
+        title: "AI import failed",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setAiRunning(false);
+    }
+  };
 
   const downloadTemplate = () => {
     const csv = toCSV(TEMPLATE_ROWS);
@@ -235,6 +282,65 @@ export default function BulkUpload() {
               <code>tastes</code>, <code>image_url</code>.
             </p>
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-primary/30 bg-card p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h2 className="font-semibold">AI auto-fill from the web</h2>
+              <p className="text-sm text-muted-foreground">
+                Paste strain names (one per line). We'll search the web, scrape sources, and
+                use AI to extract vitals, effects, aromas, genetics and more — then insert them.
+              </p>
+            </div>
+          </div>
+
+          <textarea
+            value={aiNames}
+            onChange={(e) => setAiNames(e.target.value)}
+            placeholder={"Blue Dream\nGirl Scout Cookies\nGorilla Glue #4"}
+            rows={5}
+            className="w-full rounded-xl bg-secondary text-secondary-foreground p-3 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/40"
+          />
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={handleAiImport}
+              disabled={aiRunning}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {aiRunning ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              {aiRunning ? "Researching…" : "Generate with AI"}
+            </button>
+            <span className="text-xs text-muted-foreground">
+              Up to 25 strains per run. Takes ~10s per strain.
+            </span>
+          </div>
+
+          {aiResults && (
+            <ul className="text-xs rounded-xl border border-border divide-y divide-border max-h-56 overflow-auto">
+              {aiResults.map((r, i) => (
+                <li key={i} className="flex items-center gap-2 px-3 py-2">
+                  {r.status === "inserted" ? (
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                  )}
+                  <span className="font-medium">{r.name}</span>
+                  {r.error && (
+                    <span className="text-destructive/80 truncate">— {r.error}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {errors.length > 0 && (

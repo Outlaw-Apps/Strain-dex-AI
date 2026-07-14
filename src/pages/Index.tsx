@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Leaf } from "lucide-react";
+import { Leaf, Sparkles, Loader2 } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterChips } from "@/components/FilterChips";
 import { StrainCard } from "@/components/StrainCard";
@@ -13,8 +13,11 @@ import { Footer } from "@/components/Footer";
 import { useStrains, type DbStrain } from "@/hooks/useStrains";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import heroBud from "@/assets/hero-bud.jpg";
 
 const Index = () => {

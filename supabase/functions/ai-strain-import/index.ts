@@ -12,6 +12,36 @@ const corsHeaders = {
 const FIRECRAWL = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+function normalizeName(n: string) {
+  return n.toLowerCase().trim().replace(/['']/g, "").replace(/\s+/g, " ");
+}
+
+function mergeArrays(existing: string[] | null | undefined, incoming: string[]) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of [...(existing ?? []), ...incoming]) {
+    const k = v.trim().toLowerCase();
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    out.push(v.trim());
+  }
+  return out;
+}
+
+function preferText(existing: string | null | undefined, incoming: string) {
+  const e = (existing ?? "").trim();
+  const i = (incoming ?? "").trim();
+  if (!e) return i;
+  if (!i) return e;
+  return i.length > e.length ? i : e;
+}
+
+function preferNumber(existing: number | null | undefined, incoming: number) {
+  const e = Number(existing ?? 0);
+  const i = Number(incoming ?? 0);
+  return i > 0 ? i : e;
+}
+
 type StrainRow = {
   name: string;
   type: "Sativa" | "Indica" | "Hybrid";

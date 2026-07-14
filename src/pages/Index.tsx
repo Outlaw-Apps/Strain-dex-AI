@@ -205,18 +205,45 @@ const Index = () => {
           <div className="text-center py-16 md:py-20">
             <Leaf className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-display text-base md:text-lg">No strains found</p>
-            <p className="text-muted-foreground/60 text-xs md:text-sm mt-1">Try adjusting your search or filters</p>
-            {hasActiveFilters && (
+            <p className="text-muted-foreground/60 text-xs md:text-sm mt-1">
+              {search.trim()
+                ? "Not in the archive yet — let AI research it for you."
+                : "Try adjusting your search or filters"}
+            </p>
+            {search.trim() && isAdmin && (
               <button
-                onClick={() =>
-                  update({ search: "", type: "All", effects: [], favorites: false })
-                }
-                className="mt-4 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-muted transition"
+                onClick={handleAiImport}
+                disabled={isImporting}
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-black uppercase tracking-widest shadow-[0_0_20px_hsl(152_100%_50%/0.4)] hover:shadow-[0_0_28px_hsl(152_100%_50%/0.7)] disabled:opacity-60 disabled:cursor-not-allowed transition"
+                aria-label={`Add ${search} with AI`}
               >
-                Clear filters
+                {isImporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Adding "{search}"…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Add "{search}" with AI
+                  </>
+                )}
               </button>
             )}
+            {hasActiveFilters && (
+              <div>
+                <button
+                  onClick={() =>
+                    update({ search: "", type: "All", effects: [], favorites: false })
+                  }
+                  className="mt-4 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-muted transition"
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
           </div>
+
         )}
       </main>
 

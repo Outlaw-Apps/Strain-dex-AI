@@ -27,7 +27,43 @@ const Index = () => {
   const { data: strains = [], isLoading, isError, refetch } = useStrains();
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const { user } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleAiImport = async () => {
+    const name = search.trim();
+    if (!name) return;
+    if (!user) {
+      toast({ title: "Sign in to add strains" });
+      navigate("/auth");
+      return;
+    }
+    if (!isAdmin) {
+      toast({ variant: "destructive", title: "Admin only", description: "Only admins can add new strains." });
+      return;
+    }
+    setIsImporting(true);
+    toast({ title: `Researching "${name}"…`, description: "Fetching data and generating strain card." });
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-strain-import", {
+        body: { names: [name] },
+      });
+      if (error) throw error;
+      const result = (data as { results?: Array<{ status: string; error?: string }> })?.results?.[0];
+      if (result?.status === "inserted") {
+        await queryClient.invalidateQueries({ queryKey: ["strains"] });
+        toast({ title: `Added "${name}"`, description: "Strain card is now in your archive." });
+      } else {
+        throw new Error(result?.error || "Import failed");
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Couldn't add strain", description: (e as Error).message });
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const handleToggleFavorite = (id: string) => {
     if (!user) {

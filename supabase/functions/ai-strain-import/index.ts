@@ -187,12 +187,11 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const results: Array<{ name: string; status: "inserted" | "failed"; error?: string }> = [];
+    const results: Array<{ name: string; status: "inserted" | "updated" | "failed"; error?: string; id?: string }> = [];
 
     for (const name of names.slice(0, 25)) {
       try {
         const search = await firecrawlSearch(name, fcKey);
-        // v2 response: { data: { web: [{ url, title, description, markdown }, ...] } } or { data: [...] }
         const items: any[] =
           search?.data?.web ?? search?.data ?? search?.web ?? [];
         const combined = items
@@ -202,13 +201,56 @@ Deno.serve(async (req) => {
         if (!combined.trim()) throw new Error("No search content returned");
 
         const row = await extractWithAI(name, combined, aiKey);
-        const { error } = await admin.from("strains").insert(row as any);
-        if (error) throw new Error(error.message);
-        results.push({ name, status: "inserted" });
+
+        // Duplicate detection: case/punctuation-insensitive name match, ignoring soft-deleted rows
+        const normalized = normalizeName(row.name);
+        const { data: candidates, error: findErr } = await admin
+          .from("strains")
+          .select("*")
+          .ilike("name", row.name)
+          .is("deleted_at", null);
+        if (findErr) throw new Error(findErr.message);
+
+        const existing = (candidates ?? []).find(
+          (c: any) => normalizeName(c.name) === normalized,
+        );
+
+        if (existing) {
+          const merged = {
+            name: existing.name, // keep canonical existing name
+            type: existing.type || row.type,
+            thc: preferNumber(existing.thc, row.thc),
+            cbd: preferNumber(existing.cbd, row.cbd),
+            description: preferText(existing.description, row.description),
+            genetics: preferText(existing.genetics, row.genetics),
+            dominant_terpene: preferText(existing.dominant_terpene, row.dominant_terpene),
+            effects: mergeArrays(existing.effects, row.effects),
+            negative_effects: mergeArrays(existing.negative_effects, row.negative_effects),
+            medical_uses: mergeArrays(existing.medical_uses, row.medical_uses),
+            aromas: mergeArrays(existing.aromas, row.aromas),
+            tastes: mergeArrays(existing.tastes, row.tastes),
+            image_url: existing.image_url || row.image_url,
+          };
+          const { error: updErr } = await admin
+            .from("strains")
+            .update(merged as any)
+            .eq("id", existing.id);
+          if (updErr) throw new Error(updErr.message);
+          results.push({ name, status: "updated", id: existing.id });
+        } else {
+          const { data: inserted, error } = await admin
+            .from("strains")
+            .insert(row as any)
+            .select("id")
+            .single();
+          if (error) throw new Error(error.message);
+          results.push({ name, status: "inserted", id: inserted?.id });
+        }
       } catch (e) {
         results.push({ name, status: "failed", error: (e as Error).message });
       }
     }
+
 
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

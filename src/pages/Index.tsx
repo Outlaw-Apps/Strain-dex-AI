@@ -55,6 +55,9 @@ const Index = () => {
       if (result?.status === "inserted") {
         await queryClient.invalidateQueries({ queryKey: ["strains"] });
         toast({ title: `Added "${name}"`, description: "Strain card is now in your archive." });
+      } else if (result?.status === "updated") {
+        await queryClient.invalidateQueries({ queryKey: ["strains"] });
+        toast({ title: `Updated "${name}"`, description: "Existing strain merged with new data — no duplicate created." });
       } else {
         throw new Error(result?.error || "Import failed");
       }

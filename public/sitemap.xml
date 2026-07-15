@@ -198,6 +198,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+<<<<<<< HEAD
+=======
+    <loc>/strain/oreoz</loc>
+    <lastmod>2026-07-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+>>>>>>> origin/main
     <loc>/strain/green-crack</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
@@ -216,12 +225,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+<<<<<<< HEAD
     <loc>/strain/oreoz</loc>
     <lastmod>2026-07-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
+=======
+>>>>>>> origin/main
     <loc>/strain/cherry-bomb</loc>
     <lastmod>2026-07-13</lastmod>
     <changefreq>monthly</changefreq>
@@ -365,6 +377,7 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+<<<<<<< HEAD
   <url>
     <loc>/strain/pink-runtz</loc>
     <lastmod>2026-07-14</lastmod>
@@ -467,4 +480,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+=======
+>>>>>>> origin/main
 </urlset>

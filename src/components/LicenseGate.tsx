@@ -3,19 +3,104 @@ import { motion, AnimatePresence } from "framer-motion";
 import { KeyRound, Loader2 } from "lucide-react";
 
 const STORAGE_KEY = "straindex.license-key";
+const USAGE_PREFIX = "straindex.license-uses.";
 
-function getValidKeys(): string[] {
+type LicenseRule = {
+  key: string;
+  expiresAt?: string; // ISO date
+  maxUses?: number;
+};
+
+function parseRules(): LicenseRule[] {
+  const rules: LicenseRule[] = [];
+
+  // Rich JSON config: [{ "key": "ABC", "expiresAt": "2026-12-31", "maxUses": 100 }]
+  const jsonRaw = (import.meta.env.VITE_LICENSE_KEYS_JSON as string | undefined) ?? "";
+  if (jsonRaw.trim()) {
+    try {
+      const parsed = JSON.parse(jsonRaw);
+      if (Array.isArray(parsed)) {
+        for (const r of parsed) {
+          if (r && typeof r.key === "string") {
+            rules.push({
+              key: r.key.trim().toUpperCase(),
+              expiresAt: typeof r.expiresAt === "string" ? r.expiresAt : undefined,
+              maxUses: typeof r.maxUses === "number" ? r.maxUses : undefined,
+            });
+          }
+        }
+      }
+    } catch {
+      /* ignore malformed JSON */
+    }
+  }
+
+  // Legacy comma-separated keys (no expiry / no cap)
   const raw = (import.meta.env.VITE_LICENSE_KEYS as string | undefined) ?? "";
-  return raw
-    .split(",")
-    .map((k) => k.trim().toUpperCase())
-    .filter(Boolean);
+  for (const k of raw.split(",")) {
+    const key = k.trim().toUpperCase();
+    if (key && !rules.some((r) => r.key === key)) rules.push({ key });
+  }
+
+  return rules;
 }
 
-function isValid(candidate: string): boolean {
-  const keys = getValidKeys();
-  if (keys.length === 0) return true; // no keys configured => gate disabled
-  return keys.includes(candidate.trim().toUpperCase());
+function findRule(candidate: string): LicenseRule | undefined {
+  const norm = candidate.trim().toUpperCase();
+  return parseRules().find((r) => r.key === norm);
+}
+
+function readUses(key: string): number {
+  try {
+    return Number(localStorage.getItem(USAGE_PREFIX + key) ?? "0") || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function bumpUses(key: string): number {
+  const next = readUses(key) + 1;
+  try {
+    localStorage.setItem(USAGE_PREFIX + key, String(next));
+  } catch {
+    /* ignore */
+  }
+  return next;
+}
+
+type ValidationResult =
+  | { ok: true; rule: LicenseRule }
+  | { ok: false; reason: string };
+
+function validate(candidate: string, opts: { countUsage: boolean }): ValidationResult {
+  const rules = parseRules();
+  if (rules.length === 0) {
+    // Gate disabled
+    return { ok: true, rule: { key: "" } };
+  }
+  const rule = findRule(candidate);
+  if (!rule) return { ok: false, reason: "That license key isn't valid." };
+
+  if (rule.expiresAt) {
+    const exp = new Date(rule.expiresAt).getTime();
+    if (!Number.isNaN(exp) && Date.now() > exp) {
+      return { ok: false, reason: `This key expired on ${new Date(exp).toLocaleDateString()}.` };
+    }
+  }
+
+  if (typeof rule.maxUses === "number" && rule.maxUses > 0) {
+    const used = readUses(rule.key);
+    const nextUsed = opts.countUsage ? used + 1 : used;
+    if (nextUsed > rule.maxUses) {
+      return { ok: false, reason: "This key has reached its usage limit." };
+    }
+  }
+
+  if (opts.countUsage && typeof rule.maxUses === "number") {
+    bumpUses(rule.key);
+  }
+
+  return { ok: true, rule };
 }
 
 export function LicenseGate({ children }: { children: React.ReactNode }) {
@@ -28,7 +113,14 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) ?? "";
-      if (isValid(saved) || getValidKeys().length === 0) setUnlocked(true);
+      if (saved) {
+        // Re-validate saved key (may have expired or hit its cap since last visit)
+        const res = validate(saved, { countUsage: false });
+        if (res.ok) setUnlocked(true);
+        else localStorage.removeItem(STORAGE_KEY);
+      } else if (parseRules().length === 0) {
+        setUnlocked(true);
+      }
     } catch {
       /* ignore */
     }
@@ -39,7 +131,8 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    if (isValid(value)) {
+    const res = validate(value, { countUsage: true });
+    if (res.ok) {
       try {
         localStorage.setItem(STORAGE_KEY, value.trim().toUpperCase());
       } catch {
@@ -47,7 +140,7 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
       }
       setUnlocked(true);
     } else {
-      setError("That license key isn't valid.");
+      setError(res.reason);
     }
     setSubmitting(false);
   };

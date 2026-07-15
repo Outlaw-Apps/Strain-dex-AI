@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AdminGuard } from "@/components/AdminGuard";
 import { AgeGate } from "@/components/AgeGate";
+import { LicenseGate } from "@/components/LicenseGate";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +43,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <LicenseGate>
             <AgeGate />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
@@ -61,6 +63,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            </LicenseGate>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

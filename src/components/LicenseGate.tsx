@@ -29,6 +29,9 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [adminValue, setAdminValue] = useState("");
+  const [adminError, setAdminError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {

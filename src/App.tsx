@@ -18,6 +18,7 @@ const BulkUpload = lazy(() => import("./pages/BulkUpload"));
 const StrainPage = lazy(() => import("./pages/StrainPage"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const LicenseAdmin = lazy(() => import("./pages/LicenseAdmin"));
 
 
 const queryClient = new QueryClient({
@@ -57,6 +58,14 @@ const App = () => (
                   element={
                     <AdminGuard>
                       <BulkUpload />
+                    </AdminGuard>
+                  }
+                />
+                <Route
+                  path="/admin/licenses"
+                  element={
+                    <AdminGuard>
+                      <LicenseAdmin />
                     </AdminGuard>
                   }
                 />

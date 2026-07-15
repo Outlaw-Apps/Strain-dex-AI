@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.strains-export]
 verify_jwt = false
+
+[functions.license-validate]
+verify_jwt = false

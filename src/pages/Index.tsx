@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Leaf } from "lucide-react";
+import { Leaf, Sparkles, Loader2 } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterChips } from "@/components/FilterChips";
 import { StrainCard } from "@/components/StrainCard";
@@ -13,8 +13,11 @@ import { Footer } from "@/components/Footer";
 import { useStrains, type DbStrain } from "@/hooks/useStrains";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import heroBud from "@/assets/hero-bud.jpg";
 
 const Index = () => {
@@ -24,7 +27,46 @@ const Index = () => {
   const { data: strains = [], isLoading, isError, refetch } = useStrains();
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const { user } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleAiImport = async () => {
+    const name = search.trim();
+    if (!name) return;
+    if (!user) {
+      toast({ title: "Sign in to add strains" });
+      navigate("/auth");
+      return;
+    }
+    if (!isAdmin) {
+      toast({ variant: "destructive", title: "Admin only", description: "Only admins can add new strains." });
+      return;
+    }
+    setIsImporting(true);
+    toast({ title: `Researching "${name}"…`, description: "Fetching data and generating strain card." });
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-strain-import", {
+        body: { names: [name] },
+      });
+      if (error) throw error;
+      const result = (data as { results?: Array<{ status: string; error?: string }> })?.results?.[0];
+      if (result?.status === "inserted") {
+        await queryClient.invalidateQueries({ queryKey: ["strains"] });
+        toast({ title: `Added "${name}"`, description: "Strain card is now in your archive." });
+      } else if (result?.status === "updated") {
+        await queryClient.invalidateQueries({ queryKey: ["strains"] });
+        toast({ title: `Updated "${name}"`, description: "Existing strain merged with new data — no duplicate created." });
+      } else {
+        throw new Error(result?.error || "Import failed");
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Couldn't add strain", description: (e as Error).message });
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const handleToggleFavorite = (id: string) => {
     if (!user) {
@@ -166,18 +208,45 @@ const Index = () => {
           <div className="text-center py-16 md:py-20">
             <Leaf className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-display text-base md:text-lg">No strains found</p>
-            <p className="text-muted-foreground/60 text-xs md:text-sm mt-1">Try adjusting your search or filters</p>
-            {hasActiveFilters && (
+            <p className="text-muted-foreground/60 text-xs md:text-sm mt-1">
+              {search.trim()
+                ? "Not in the archive yet — let AI research it for you."
+                : "Try adjusting your search or filters"}
+            </p>
+            {search.trim() && isAdmin && (
               <button
-                onClick={() =>
-                  update({ search: "", type: "All", effects: [], favorites: false })
-                }
-                className="mt-4 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-muted transition"
+                onClick={handleAiImport}
+                disabled={isImporting}
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-black uppercase tracking-widest shadow-[0_0_20px_hsl(152_100%_50%/0.4)] hover:shadow-[0_0_28px_hsl(152_100%_50%/0.7)] disabled:opacity-60 disabled:cursor-not-allowed transition"
+                aria-label={`Add ${search} with AI`}
               >
-                Clear filters
+                {isImporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Adding "{search}"…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Add "{search}" with AI
+                  </>
+                )}
               </button>
             )}
+            {hasActiveFilters && (
+              <div>
+                <button
+                  onClick={() =>
+                    update({ search: "", type: "All", effects: [], favorites: false })
+                  }
+                  className="mt-4 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-muted transition"
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
           </div>
+
         )}
       </main>
 

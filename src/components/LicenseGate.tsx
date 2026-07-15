@@ -53,7 +53,7 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
     setSubmitting(true);
     setError(null);
     const res = await validateOnServer(value, true);
-    if (res.ok) {
+    if (res.ok === true) {
       try {
         localStorage.setItem(STORAGE_KEY, value.trim().toUpperCase());
       } catch {
@@ -61,7 +61,7 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
       }
       setUnlocked(true);
     } else {
-      setError(res.reason);
+      setError((res as { ok: false; reason: string }).reason);
     }
     setSubmitting(false);
   };

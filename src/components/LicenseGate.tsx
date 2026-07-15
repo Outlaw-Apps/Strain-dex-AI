@@ -142,6 +142,43 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
           <p className="mt-4 text-[10px] uppercase tracking-widest text-muted-foreground/60">
             Contact your administrator if you don't have a key.
           </p>
+          <button
+            type="button"
+            onClick={() => {
+              setAdminOpen((v) => !v);
+              setAdminError(null);
+            }}
+            className="mt-4 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground/70 hover:text-primary transition"
+          >
+            <ShieldCheck className="w-3 h-3" />
+            {adminOpen ? "Cancel" : "Admin override"}
+          </button>
+          {adminOpen && (
+            <div className="mt-3 space-y-2">
+              <input
+                type="password"
+                value={adminValue}
+                onChange={(e) => {
+                  setAdminValue(e.target.value);
+                  setAdminError(null);
+                }}
+                placeholder="Admin password"
+                aria-label="Admin password"
+                className="w-full px-4 py-2.5 rounded-full bg-secondary text-foreground text-center text-sm outline-none focus:ring-2 focus:ring-primary/60 border border-border"
+              />
+              {adminError && (
+                <p className="text-xs text-destructive font-medium">{adminError}</p>
+              )}
+              <button
+                type="button"
+                onClick={submitAdmin}
+                disabled={!adminValue.trim()}
+                className="w-full py-2.5 rounded-full bg-muted text-foreground font-bold uppercase tracking-widest text-xs hover:bg-muted/70 disabled:opacity-60 transition"
+              >
+                Bypass with admin password
+              </button>
+            </div>
+          )}
         </form>
       </motion.div>
     </AnimatePresence>

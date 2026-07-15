@@ -61,6 +61,14 @@ const App = () => (
                     </AdminGuard>
                   }
                 />
+                <Route
+                  path="/admin/licenses"
+                  element={
+                    <AdminGuard>
+                      <LicenseAdmin />
+                    </AdminGuard>
+                  }
+                />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

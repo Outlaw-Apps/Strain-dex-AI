@@ -43,6 +43,42 @@ export type Database = {
           },
         ]
       }
+      license_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          key: string
+          max_uses: number | null
+          note: string | null
+          revoked: boolean
+          updated_at: string
+          uses: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key: string
+          max_uses?: number | null
+          note?: string | null
+          revoked?: boolean
+          updated_at?: string
+          uses?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key?: string
+          max_uses?: number | null
+          note?: string | null
+          revoked?: boolean
+          updated_at?: string
+          uses?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -159,6 +195,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      redeem_license_key: {
+        Args: { _count_usage: boolean; _key: string }
+        Returns: Json
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

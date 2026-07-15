@@ -12,6 +12,36 @@ const corsHeaders = {
 const FIRECRAWL = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+function normalizeName(n: string) {
+  return n.toLowerCase().trim().replace(/['']/g, "").replace(/\s+/g, " ");
+}
+
+function mergeArrays(existing: string[] | null | undefined, incoming: string[]) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of [...(existing ?? []), ...incoming]) {
+    const k = v.trim().toLowerCase();
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    out.push(v.trim());
+  }
+  return out;
+}
+
+function preferText(existing: string | null | undefined, incoming: string) {
+  const e = (existing ?? "").trim();
+  const i = (incoming ?? "").trim();
+  if (!e) return i;
+  if (!i) return e;
+  return i.length > e.length ? i : e;
+}
+
+function preferNumber(existing: number | null | undefined, incoming: number) {
+  const e = Number(existing ?? 0);
+  const i = Number(incoming ?? 0);
+  return i > 0 ? i : e;
+}
+
 type StrainRow = {
   name: string;
   type: "Sativa" | "Indica" | "Hybrid";
@@ -157,12 +187,11 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const results: Array<{ name: string; status: "inserted" | "failed"; error?: string }> = [];
+    const results: Array<{ name: string; status: "inserted" | "updated" | "failed"; error?: string; id?: string }> = [];
 
     for (const name of names.slice(0, 25)) {
       try {
         const search = await firecrawlSearch(name, fcKey);
-        // v2 response: { data: { web: [{ url, title, description, markdown }, ...] } } or { data: [...] }
         const items: any[] =
           search?.data?.web ?? search?.data ?? search?.web ?? [];
         const combined = items
@@ -172,13 +201,56 @@ Deno.serve(async (req) => {
         if (!combined.trim()) throw new Error("No search content returned");
 
         const row = await extractWithAI(name, combined, aiKey);
-        const { error } = await admin.from("strains").insert(row as any);
-        if (error) throw new Error(error.message);
-        results.push({ name, status: "inserted" });
+
+        // Duplicate detection: case/punctuation-insensitive name match, ignoring soft-deleted rows
+        const normalized = normalizeName(row.name);
+        const { data: candidates, error: findErr } = await admin
+          .from("strains")
+          .select("*")
+          .ilike("name", row.name)
+          .is("deleted_at", null);
+        if (findErr) throw new Error(findErr.message);
+
+        const existing = (candidates ?? []).find(
+          (c: any) => normalizeName(c.name) === normalized,
+        );
+
+        if (existing) {
+          const merged = {
+            name: existing.name, // keep canonical existing name
+            type: existing.type || row.type,
+            thc: preferNumber(existing.thc, row.thc),
+            cbd: preferNumber(existing.cbd, row.cbd),
+            description: preferText(existing.description, row.description),
+            genetics: preferText(existing.genetics, row.genetics),
+            dominant_terpene: preferText(existing.dominant_terpene, row.dominant_terpene),
+            effects: mergeArrays(existing.effects, row.effects),
+            negative_effects: mergeArrays(existing.negative_effects, row.negative_effects),
+            medical_uses: mergeArrays(existing.medical_uses, row.medical_uses),
+            aromas: mergeArrays(existing.aromas, row.aromas),
+            tastes: mergeArrays(existing.tastes, row.tastes),
+            image_url: existing.image_url || row.image_url,
+          };
+          const { error: updErr } = await admin
+            .from("strains")
+            .update(merged as any)
+            .eq("id", existing.id);
+          if (updErr) throw new Error(updErr.message);
+          results.push({ name, status: "updated", id: existing.id });
+        } else {
+          const { data: inserted, error } = await admin
+            .from("strains")
+            .insert(row as any)
+            .select("id")
+            .single();
+          if (error) throw new Error(error.message);
+          results.push({ name, status: "inserted", id: inserted?.id });
+        }
       } catch (e) {
         results.push({ name, status: "failed", error: (e as Error).message });
       }
     }
+
 
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

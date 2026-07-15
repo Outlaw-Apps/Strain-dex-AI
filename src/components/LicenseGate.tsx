@@ -36,6 +36,11 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        if (localStorage.getItem("straindex.admin-bypass") === "1") {
+          setUnlocked(true);
+          setChecked(true);
+          return;
+        }
         const saved = localStorage.getItem(STORAGE_KEY) ?? "";
         if (saved) {
           const res = await validateOnServer(saved, false);
@@ -51,6 +56,21 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
       setChecked(true);
     })();
   }, []);
+
+  const submitAdmin = (e: FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    if (adminValue.trim() === ADMIN_PASSWORD) {
+      try {
+        localStorage.setItem("straindex.admin-bypass", "1");
+      } catch {
+        /* ignore */
+      }
+      setUnlocked(true);
+    } else {
+      setAdminError("Incorrect admin password.");
+    }
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

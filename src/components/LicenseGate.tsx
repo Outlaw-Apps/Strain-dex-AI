@@ -4,6 +4,7 @@ import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "straindex.license-key";
+const ADMIN_PASSWORD = (import.meta.env.VITE_ADMIN_BYPASS_PASSWORD as string | undefined) ?? "STRAINDEX-ADMIN-2026";
 
 type ValidateResponse =
   | { ok: true; key: string; expiresAt: string | null; maxUses: number | null; uses: number }

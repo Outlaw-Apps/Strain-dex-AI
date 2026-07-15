@@ -140,7 +140,7 @@ export function LicenseGate({ children }: { children: React.ReactNode }) {
       }
       setUnlocked(true);
     } else {
-      setError(res.reason);
+      setError((res as { ok: false; reason: string }).reason);
     }
     setSubmitting(false);
   };

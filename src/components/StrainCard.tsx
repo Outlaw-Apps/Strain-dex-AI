@@ -157,7 +157,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
         </div>
 
         <div className="p-3.5 md:p-4 space-y-3">
-          <h3 className="font-display text-sm md:text-[15px] xl:text-base uppercase leading-[1] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto min-h-[2.1em]">
+          <h3 className="font-display text-sm md:text-[15px] xl:text-base uppercase leading-[1.1] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto line-clamp-2 overflow-hidden min-h-[2.2em]">
             {strain.name}
           </h3>
           <div className="hairline-gold" />
@@ -176,9 +176,9 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
               </p>
             </div>
           </div>
-          <div className="flex items-baseline justify-between gap-2 pt-2 border-t border-gold/10 min-w-0">
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-gold/10 min-w-0">
             <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none shrink-0">Terpene</p>
-            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.05em] text-gold-light truncate leading-none min-w-0">
+            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.05em] text-gold-light truncate leading-none min-w-0 text-right">
               {strain.dominant_terpene}
             </p>
           </div>

@@ -1,19 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { ID, Query } from "appwrite";
+import { DATABASE_ID, TABLES, tables } from "@/integrations/appwrite/client";
+import { toLicenseKey, type LicenseKeyRow } from "@/integrations/appwrite/types";
 import { toast } from "@/hooks/use-toast";
 import { KeyRound, Plus, Trash2, RotateCcw, ArrowLeft, Loader2, Copy } from "lucide-react";
 
-type LicenseKey = {
-  id: string;
-  key: string;
-  expires_at: string | null;
-  max_uses: number | null;
-  uses: number;
-  revoked: boolean;
-  note: string | null;
-  created_at: string;
-};
+type LicenseKey = LicenseKeyRow;
 
 function randomKey() {
   const seg = () =>
@@ -34,14 +27,19 @@ export default function LicenseAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("license_keys")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
-      toast({ title: "Failed to load keys", description: error.message, variant: "destructive" });
-    } else {
-      setRows((data ?? []) as LicenseKey[]);
+    try {
+      const res = await tables.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.licenseKeys,
+        queries: [Query.orderDesc("$createdAt"), Query.limit(500)],
+      });
+      setRows(res.rows.map(toLicenseKey));
+    } catch (e) {
+      toast({
+        title: "Failed to load keys",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
     }
     setLoading(false);
   };
@@ -59,12 +57,23 @@ export default function LicenseAdmin() {
       max_uses: maxUses ? Number(maxUses) : null,
       note: note.trim() || null,
     };
-    const { error } = await supabase.from("license_keys").insert(payload);
-    setCreating(false);
-    if (error) {
-      toast({ title: "Couldn't create key", description: error.message, variant: "destructive" });
+    try {
+      await tables.createRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.licenseKeys,
+        rowId: ID.unique(),
+        data: payload,
+      });
+    } catch (e) {
+      setCreating(false);
+      toast({
+        title: "Couldn't create key",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
       return;
     }
+    setCreating(false);
     toast({ title: "License key created", description: payload.key });
     setKey(randomKey());
     setExpiresAt("");
@@ -74,12 +83,15 @@ export default function LicenseAdmin() {
   };
 
   const toggleRevoke = async (row: LicenseKey) => {
-    const { error } = await supabase
-      .from("license_keys")
-      .update({ revoked: !row.revoked })
-      .eq("id", row.id);
-    if (error) {
-      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+    try {
+      await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.licenseKeys,
+        rowId: row.id,
+        data: { revoked: !row.revoked },
+      });
+    } catch (e) {
+      toast({ title: "Update failed", description: (e as Error).message, variant: "destructive" });
       return;
     }
     load();
@@ -87,9 +99,14 @@ export default function LicenseAdmin() {
 
   const remove = async (row: LicenseKey) => {
     if (!confirm(`Delete ${row.key}? This cannot be undone.`)) return;
-    const { error } = await supabase.from("license_keys").delete().eq("id", row.id);
-    if (error) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    try {
+      await tables.deleteRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.licenseKeys,
+        rowId: row.id,
+      });
+    } catch (e) {
+      toast({ title: "Delete failed", description: (e as Error).message, variant: "destructive" });
       return;
     }
     load();

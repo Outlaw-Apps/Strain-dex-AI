@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { Search, Mic, MicOff, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { callFunction, FUNCTIONS } from "@/integrations/appwrite/client";
 import { toast } from "@/hooks/use-toast";
 import { WavRecorder } from "@/lib/wavRecorder";
 
@@ -52,13 +52,18 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
 
     setIsTranscribing(true);
     try {
-      const form = new FormData();
-      form.append("file", blob, "recording.wav");
-      const { data, error } = await supabase.functions.invoke("voice-search-transcribe", {
-        body: form,
+      // Appwrite function executions take a string body — send the WAV as base64.
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      }
+      const data = await callFunction<{ text?: string }>(FUNCTIONS.voiceSearchTranscribe, {
+        audio: btoa(binary),
+        contentType: blob.type || "audio/wav",
+        filename: "recording.wav",
       });
-      if (error) throw error;
-      const text = (data as { text?: string })?.text?.trim();
+      const text = data?.text?.trim();
       if (text) {
         onChange(text.replace(/[.!?]+$/, ""));
       } else {

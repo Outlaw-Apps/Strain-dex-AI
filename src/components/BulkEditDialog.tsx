@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { DATABASE_ID, TABLES, tables } from "@/integrations/appwrite/client";
 import { toast } from "@/hooks/use-toast";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { StrainUpdate } from "@/integrations/appwrite/types";
 import {
   Dialog,
   DialogContent,
@@ -71,7 +71,7 @@ export function BulkEditDialog({ ids, open, onOpenChange, onDone }: Props) {
 
   const apply = useMutation({
     mutationFn: async () => {
-      const scalar: TablesUpdate<"strains"> = {};
+      const scalar: StrainUpdate = {};
       if (form.setType) scalar.type = form.type;
       if (form.setTerpene) scalar.dominant_terpene = form.dominant_terpene.trim();
       if (form.setThc) {
@@ -95,43 +95,34 @@ export function BulkEditDialog({ ids, open, onOpenChange, onDone }: Props) {
         throw new Error("Enable at least one field to update");
       }
 
-      // Fast path: scalar-only + replace-only lists → single bulk update
-      const allReplace = listOps.every((o) => o.mode === "replace");
-      if (allReplace) {
-        const payload: TablesUpdate<"strains"> = { ...scalar };
-        for (const o of listOps) payload[o.field] = o.values;
-        setProgress({ done: 0, total: 1 });
-        const { error } = await supabase.from("strains").update(payload).in("id", ids);
-        if (error) throw error;
-        setProgress({ done: 1, total: 1 });
-        return;
-      }
-
-      // Append mode requires per-row merge
+      // Append mode needs current values for the per-row merge.
       const needsFetch = listOps.some((o) => o.mode === "append");
-      let rows: Array<Record<string, any>> = [];
-      if (needsFetch) {
-        const { data, error } = await supabase
-          .from("strains")
-          .select("id, effects, aromas, tastes, medical_uses")
-          .in("id", ids);
-        if (error) throw error;
-        rows = data ?? [];
-      }
+      const rows: Array<Record<string, any>> = needsFetch
+        ? await Promise.all(
+            ids.map((id) =>
+              tables.getRow({ databaseId: DATABASE_ID, tableId: TABLES.strains, rowId: id }),
+            ),
+          )
+        : [];
 
+      // Appwrite has no bulk update across row IDs; update rows one by one.
       setProgress({ done: 0, total: ids.length });
       for (let i = 0; i < ids.length; i++) {
         const id = ids[i];
-        const payload: TablesUpdate<"strains"> = { ...scalar };
+        const payload: StrainUpdate = { ...scalar };
         for (const o of listOps) {
           if (o.mode === "replace") payload[o.field] = o.values;
           else {
-            const row = rows.find((r) => r.id === id);
+            const row = rows.find((r) => r.$id === id);
             payload[o.field] = mergeUnique((row?.[o.field] as string[]) ?? [], o.values);
           }
         }
-        const { error } = await supabase.from("strains").update(payload).eq("id", id);
-        if (error) throw error;
+        await tables.updateRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.strains,
+          rowId: id,
+          data: payload,
+        });
         setProgress({ done: i + 1, total: ids.length });
       }
     },

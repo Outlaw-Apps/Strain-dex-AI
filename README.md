@@ -1,46 +1,46 @@
 # Strain-dex AI
 
-## Project info
+Search, discover, and explore cannabis strains — detailed profiles for THC, CBD,
+terpenes, effects, aromas, and genetics. Built with Vite + React + shadcn-ui +
+Tailwind, packaged for web, Electron (desktop), and Android (Capacitor).
 
-Follow these steps:
+**Backend: [Appwrite](https://appwrite.io)** — auth, database (TablesDB), file
+storage, and serverless functions. See **[appwrite/README.md](appwrite/README.md)**
+for backend setup (provisioning script included).
+
+## Develop
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd Strain-dex AI
-
-# Step 3: Install the necessary dependencies.
+# 1. Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 2. Configure the backend
+#    Copy your Appwrite project values into .env:
+#    VITE_APPWRITE_ENDPOINT / VITE_APPWRITE_PROJECT_ID / VITE_APPWRITE_DATABASE_ID
+#    (First time? Run the provisioning script in appwrite/README.md.)
+
+# 3. Start the dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Other scripts:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npm run build        # production build (also regenerates public/sitemap.xml)
+npm run lint
+npm test             # vitest
+```
 
-**Use GitHub Codespaces**
+## Platform builds
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Web**: `npm run build` → `dist/`
+- **Android**: `npm run build` then `npx cap sync android` and build from `android/`
+- **Electron**: `npm run build`, then use the `electron/` main process with your
+  preferred electron-builder flow
 
+## Tech
 
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Vite, TypeScript, React 18, shadcn-ui, Tailwind CSS
+- Appwrite (Auth, TablesDB, Storage, Functions)
+- Capacitor (Android), Electron (desktop)
 

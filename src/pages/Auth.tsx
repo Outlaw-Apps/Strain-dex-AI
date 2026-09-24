@@ -4,7 +4,6 @@ import { Leaf, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { lovable } from "@/integrations/lovable/index";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden>
@@ -18,7 +17,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,7 +34,8 @@ const Auth = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else if (isSignUp) {
-      toast({ title: "Check your email", description: "We sent you a confirmation link." });
+      toast({ title: "Account created", description: "Welcome to Strain Dex." });
+      navigate("/");
     } else {
       navigate("/");
     }
@@ -43,19 +43,10 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setOauthLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) {
-        toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
-        setOauthLoading(false);
-        return;
-      }
-      if (result.redirected) return;
-      navigate("/");
-    } catch (e: any) {
-      toast({ title: "Google sign-in failed", description: e?.message, variant: "destructive" });
+    // Redirects the browser/webview to Google; only resolves immediately on failure.
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
       setOauthLoading(false);
     }
   };

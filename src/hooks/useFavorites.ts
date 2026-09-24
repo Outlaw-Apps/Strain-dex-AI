@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ID, Permission, Query, Role } from "appwrite";
+import { DATABASE_ID, TABLES, tables } from "@/integrations/appwrite/client";
 import { useAuth } from "./useAuth";
+
+const PAGE_SIZE = 500;
 
 export function useFavorites() {
   const { user } = useAuth();
@@ -10,12 +13,24 @@ export function useFavorites() {
     queryKey: ["favorites", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("favorites")
-        .select("strain_id")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return data.map((f) => f.strain_id);
+      const ids: string[] = [];
+      let cursor: string | undefined;
+      for (;;) {
+        const queries = [
+          Query.equal("user_id", user!.id),
+          Query.limit(PAGE_SIZE),
+          ...(cursor ? [Query.cursorAfter(cursor)] : []),
+        ];
+        const res = await tables.listRows({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.favorites,
+          queries,
+        });
+        ids.push(...res.rows.map((r) => r.strain_id as string));
+        if (res.rows.length < PAGE_SIZE) break;
+        cursor = res.rows[res.rows.length - 1].$id;
+      }
+      return ids;
     },
   });
 
@@ -24,17 +39,36 @@ export function useFavorites() {
       if (!user) throw new Error("Must be logged in");
       const isFav = favoriteIds.includes(strainId);
       if (isFav) {
-        const { error } = await supabase
-          .from("favorites")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("strain_id", strainId);
-        if (error) throw error;
+        const res = await tables.listRows({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.favorites,
+          queries: [
+            Query.equal("user_id", user.id),
+            Query.equal("strain_id", strainId),
+            Query.limit(1),
+          ],
+        });
+        const row = res.rows[0];
+        if (row) {
+          await tables.deleteRow({
+            databaseId: DATABASE_ID,
+            tableId: TABLES.favorites,
+            rowId: row.$id,
+          });
+        }
       } else {
-        const { error } = await supabase
-          .from("favorites")
-          .insert({ user_id: user.id, strain_id: strainId });
-        if (error) throw error;
+        await tables.createRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.favorites,
+          rowId: ID.unique(),
+          data: { user_id: user.id, strain_id: strainId },
+          // Row-level security: only the owner can see/remove their favorite.
+          permissions: [
+            Permission.read(Role.user(user.id)),
+            Permission.update(Role.user(user.id)),
+            Permission.delete(Role.user(user.id)),
+          ],
+        });
       }
     },
     onSuccess: () => {
@@ -42,5 +76,9 @@ export function useFavorites() {
     },
   });
 
-  return { favoriteIds, toggleFavorite: toggleFavorite.mutate, isFavorite: (id: string) => favoriteIds.includes(id) };
+  return {
+    favoriteIds,
+    toggleFavorite: toggleFavorite.mutate,
+    isFavorite: (id: string) => favoriteIds.includes(id),
+  };
 }

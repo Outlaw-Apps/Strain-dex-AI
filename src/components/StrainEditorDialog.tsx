@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { DATABASE_ID, TABLES, tables } from "@/integrations/appwrite/client";
 import { toast } from "@/hooks/use-toast";
 import type { DbStrain } from "@/hooks/useStrains";
 import {
@@ -79,9 +79,11 @@ export function StrainEditorDialog({ strain, open, onOpenChange }: Props) {
       if (Number.isNaN(thc) || thc < 0 || thc > 100) throw new Error("THC must be 0–100");
       if (Number.isNaN(cbd) || cbd < 0 || cbd > 100) throw new Error("CBD must be 0–100");
 
-      const { error } = await supabase
-        .from("strains")
-        .update({
+      await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.strains,
+        rowId: strain.id,
+        data: {
           name: form.name.trim(),
           type: form.type,
           thc,
@@ -95,9 +97,8 @@ export function StrainEditorDialog({ strain, open, onOpenChange }: Props) {
           medical_uses: toArr(form.medical_uses),
           aromas: toArr(form.aromas),
           tastes: toArr(form.tastes),
-        })
-        .eq("id", strain.id);
-      if (error) throw error;
+        },
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-strains"] });

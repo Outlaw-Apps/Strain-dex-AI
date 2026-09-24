@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { callFunction, FUNCTIONS } from "@/integrations/appwrite/client";
 import { useQueryClient } from "@tanstack/react-query";
 import heroBud from "@/assets/hero-bud.jpg";
 
@@ -47,11 +47,10 @@ const Index = () => {
     setIsImporting(true);
     toast({ title: `Researching "${name}"…`, description: "Fetching data and generating strain card." });
     try {
-      const { data, error } = await supabase.functions.invoke("ai-strain-import", {
-        body: { names: [name] },
-      });
-      if (error) throw error;
-      const result = (data as { results?: Array<{ status: string; error?: string }> })?.results?.[0];
+      const data = await callFunction<{
+        results?: Array<{ status: string; error?: string }>;
+      }>(FUNCTIONS.aiStrainImport, { names: [name] });
+      const result = data?.results?.[0];
       if (result?.status === "inserted") {
         await queryClient.invalidateQueries({ queryKey: ["strains"] });
         toast({ title: `Added "${name}"`, description: "Strain card is now in your archive." });

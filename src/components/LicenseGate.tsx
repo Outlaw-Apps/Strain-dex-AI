@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KeyRound, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { callFunction, FUNCTIONS } from "@/integrations/appwrite/client";
 
 const STORAGE_KEY = "straindex.license-key";
 
@@ -13,13 +13,11 @@ async function validateOnServer(
   key: string,
   countUsage: boolean
 ): Promise<ValidateResponse> {
-  const { data, error } = await supabase.functions.invoke("license-validate", {
-    body: { key, countUsage },
-  });
-  if (error) {
+  try {
+    return await callFunction<ValidateResponse>(FUNCTIONS.licenseValidate, { key, countUsage });
+  } catch {
     return { ok: false, reason: "Couldn't reach license server. Try again." };
   }
-  return data as ValidateResponse;
 }
 
 export function LicenseGate({ children }: { children: React.ReactNode }) {

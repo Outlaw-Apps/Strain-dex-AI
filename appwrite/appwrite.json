@@ -1,12 +1,12 @@
 {
-  "projectId": "YOUR_PROJECT_ID",
+  "projectId": "6ab4ac18002f08572392",
   "projectName": "strain-dex-ai",
-  "endpoint": "https://cloud.appwrite.io/v1",
+  "endpoint": "https://sfo.cloud.appwrite.io/v1",
   "functions": [
     {
       "$id": "license-validate",
       "name": "license-validate",
-      "runtime": "node-22.0",
+      "runtime": "node-22",
       "execute": ["any"],
       "entrypoint": "src/main.js",
       "commands": "npm install",
@@ -16,7 +16,7 @@
     {
       "$id": "strains-export",
       "name": "strains-export",
-      "runtime": "node-22.0",
+      "runtime": "node-22",
       "execute": ["team:admins"],
       "entrypoint": "src/main.js",
       "commands": "npm install",
@@ -26,7 +26,7 @@
     {
       "$id": "ai-strain-import",
       "name": "ai-strain-import",
-      "runtime": "node-22.0",
+      "runtime": "node-22",
       "execute": ["team:admins"],
       "entrypoint": "src/main.js",
       "commands": "npm install",
@@ -36,7 +36,7 @@
     {
       "$id": "generate-strain-image",
       "name": "generate-strain-image",
-      "runtime": "node-22.0",
+      "runtime": "node-22",
       "execute": ["team:admins"],
       "entrypoint": "src/main.js",
       "commands": "npm install",
@@ -46,7 +46,7 @@
     {
       "$id": "voice-search-transcribe",
       "name": "voice-search-transcribe",
-      "runtime": "node-22.0",
+      "runtime": "node-22",
       "execute": ["users"],
       "entrypoint": "src/main.js",
       "commands": "npm install",

@@ -62,7 +62,7 @@ export default async ({ req, res, error }) => {
     const includeDeleted = body.include_deleted === true || qp.include_deleted === "true";
 
     const client = new Client()
-      .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://cloud.appwrite.io/v1")
+      .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://sfo.cloud.appwrite.io/v1")
       .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
       .setKey(process.env.APPWRITE_API_KEY);
     const tables = new TablesDB(client);

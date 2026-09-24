@@ -21,7 +21,7 @@ export default async ({ req, res, log, error }) => {
     const AI_BASE_URL = (process.env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
     const AI_IMAGE_MODEL = process.env.AI_IMAGE_MODEL || "gpt-image-1";
 
-    const endpoint = process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://cloud.appwrite.io/v1";
+    const endpoint = process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://sfo.cloud.appwrite.io/v1";
     const projectId = process.env.APPWRITE_FUNCTION_PROJECT_ID;
     const databaseId = process.env.APPWRITE_DATABASE_ID || "straindex";
     const bucketId = process.env.APPWRITE_BUCKET_ID || "strain-images";

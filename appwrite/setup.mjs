@@ -5,7 +5,8 @@
  *
  * Usage:
  *   npm install node-appwrite        # once, anywhere
- *   $env:APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1"   # PowerShell
+ *   # (APPWRITE_ENDPOINT / APPWRITE_PROJECT_ID are also read from the repo-root .env)
+ *   $env:APPWRITE_ENDPOINT="https://<region>.cloud.appwrite.io/v1"   # PowerShell — regional endpoint, see Console → Settings
  *   $env:APPWRITE_PROJECT_ID="<your project id>"
  *   $env:APPWRITE_API_KEY="<API key with full scope>"
  *   node appwrite/setup.mjs
@@ -13,7 +14,7 @@
 import {
   Client,
   Functions,
-  IndexType,
+  TablesDBIndexType as IndexType,
   Permission,
   Role,
   Storage,
@@ -21,16 +22,24 @@ import {
   Teams,
 } from "node-appwrite";
 
-const ENDPOINT = process.env.APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1";
+// Fall back to the repo-root .env (Console → Settings → "Download .env"); shell vars take precedence.
+try {
+  process.loadEnvFile(new URL("../.env", import.meta.url));
+} catch {}
+
+const ENDPOINT = process.env.APPWRITE_ENDPOINT;
 const PROJECT_ID = process.env.APPWRITE_PROJECT_ID;
 const API_KEY = process.env.APPWRITE_API_KEY;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID || "straindex";
 const ADMIN_TEAM_ID = "admins";
 const BUCKET_ID = "strain-images";
-const RUNTIME = process.env.APPWRITE_FUNCTION_RUNTIME || "node-22.0";
+const RUNTIME = process.env.APPWRITE_FUNCTION_RUNTIME || "node-22";
 
-if (!PROJECT_ID || !API_KEY) {
-  console.error("Set APPWRITE_PROJECT_ID and APPWRITE_API_KEY first.");
+if (!ENDPOINT || !PROJECT_ID || !API_KEY) {
+  console.error(
+    "Set APPWRITE_ENDPOINT (your project's regional endpoint, e.g. https://sfo.cloud.appwrite.io/v1 — see Console → Settings), " +
+      "APPWRITE_PROJECT_ID and APPWRITE_API_KEY first (shell env vars or repo-root .env).",
+  );
   process.exit(1);
 }
 
@@ -58,6 +67,16 @@ async function ensure(label, fn) {
       console.error(`✖ ${label}: ${e?.message ?? e}`);
     }
   }
+}
+
+const columnCache = new Map();
+async function ensureColumn(tableId, key, fn) {
+  if (!columnCache.has(tableId)) {
+    const { columns } = await tablesDB.listColumns({ databaseId: DATABASE_ID, tableId });
+    columnCache.set(tableId, new Set(columns.map((c) => c.key)));
+  }
+  if (columnCache.get(tableId).has(key)) return console.log(`• column ${tableId}.${key} (already exists, skipped)`);
+  await ensure(`column ${tableId}.${key}`, fn);
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -122,12 +141,12 @@ const strainColumnKeys = [
 const strainColumns = [
   () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "name", size: 255, required: true }),
   () => tablesDB.createEnumColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "type", elements: ["Sativa", "Indica", "Hybrid"], required: true }),
-  () => tablesDB.createFloatColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "thc", required: true, min: 0, max: 100, default: 0 }),
-  () => tablesDB.createFloatColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "cbd", required: true, min: 0, max: 100, default: 0 }),
-  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "dominant_terpene", size: 255, required: false, default: "" }),
-  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "description", size: 8192, required: false, default: "" }),
-  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "genetics", size: 1024, required: false, default: "" }),
-  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "image_url", size: 2048, required: false, default: "" }),
+  () => tablesDB.createFloatColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "thc", required: false, min: 0, max: 100, xdefault: 0 }),
+  () => tablesDB.createFloatColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "cbd", required: false, min: 0, max: 100, xdefault: 0 }),
+  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "dominant_terpene", size: 255, required: false, xdefault: "" }),
+  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "description", size: 8192, required: false, xdefault: "" }),
+  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "genetics", size: 1024, required: false, xdefault: "" }),
+  () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "image_url", size: 2048, required: false, xdefault: "" }),
   ...["effects", "negative_effects", "medical_uses", "aromas", "tastes"].map(
     (key) => () =>
       tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "strains", key, size: 255, required: false, array: true }),
@@ -135,24 +154,24 @@ const strainColumns = [
   () => tablesDB.createDatetimeColumn({ databaseId: DATABASE_ID, tableId: "strains", key: "deleted_at", required: false }),
 ];
 for (let i = 0; i < strainColumns.length; i++) {
-  await ensure(`column strains.${strainColumnKeys[i]}`, strainColumns[i]);
+  await ensureColumn("strains", strainColumnKeys[i], strainColumns[i]);
 }
 
 const favoriteColumns = [
   ["user_id", () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "favorites", key: "user_id", size: 64, required: true })],
   ["strain_id", () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "favorites", key: "strain_id", size: 64, required: true })],
 ];
-for (const [key, fn] of favoriteColumns) await ensure(`column favorites.${key}`, fn);
+for (const [key, fn] of favoriteColumns) await ensureColumn("favorites", key, fn);
 
 const licenseColumns = [
   ["key", () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "key", size: 255, required: true })],
   ["expires_at", () => tablesDB.createDatetimeColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "expires_at", required: false })],
   ["max_uses", () => tablesDB.createIntegerColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "max_uses", required: false, min: 0 })],
-  ["uses", () => tablesDB.createIntegerColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "uses", required: true, min: 0, default: 0 })],
-  ["revoked", () => tablesDB.createBooleanColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "revoked", required: true, default: false })],
+  ["uses", () => tablesDB.createIntegerColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "uses", required: false, min: 0, xdefault: 0 })],
+  ["revoked", () => tablesDB.createBooleanColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "revoked", required: false, xdefault: false })],
   ["note", () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "note", size: 1024, required: false })],
 ];
-for (const [key, fn] of licenseColumns) await ensure(`column license_keys.${key}`, fn);
+for (const [key, fn] of licenseColumns) await ensureColumn("license_keys", key, fn);
 
 // Columns are created asynchronously — wait until they're available.
 await waitForColumns("strains", strainColumnKeys);
@@ -167,10 +186,6 @@ const strainIndexes = [
   ["type_idx", IndexType.Key, ["type"]],
   ["thc_idx", IndexType.Key, ["thc"]],
   ["cbd_idx", IndexType.Key, ["cbd"]],
-  ["effects_idx", IndexType.Key, ["effects"]],
-  ["aromas_idx", IndexType.Key, ["aromas"]],
-  ["tastes_idx", IndexType.Key, ["tastes"]],
-  ["medical_uses_idx", IndexType.Key, ["medical_uses"]],
 ];
 for (const [key, type, columns] of strainIndexes) {
   await ensure(`index strains.${key}`, () =>

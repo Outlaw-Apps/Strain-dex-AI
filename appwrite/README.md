@@ -23,11 +23,13 @@ This folder contains everything that replaces the old Supabase backend:
 npm install node-appwrite   # once
 
 # PowerShell:
-$env:APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1"
+$env:APPWRITE_ENDPOINT="https://sfo.cloud.appwrite.io/v1"   # this project's regional endpoint (Console → Settings)
 $env:APPWRITE_PROJECT_ID="<your project id>"
 $env:APPWRITE_API_KEY="<your api key>"
 node appwrite/setup.mjs
 ```
+
+Appwrite Cloud projects are regional (`fra`, `nyc`, `sfo`, `syd`, `sgp`, …) and the generic `https://cloud.appwrite.io/v1` endpoint is rejected with *Project is not accessible in this region* — copy the endpoint from Console → Settings. The script also reads `APPWRITE_ENDPOINT` / `APPWRITE_PROJECT_ID` from the repo-root `.env` when they aren't set in the shell (only `APPWRITE_API_KEY` must be set manually).
 
 The script is idempotent and creates:
 
@@ -46,7 +48,7 @@ With the [Appwrite CLI](https://appwrite.io/docs/tooling/command-line/installati
 
 ```sh
 appwrite login
-# edit appwrite/appwrite.json: set projectId (and endpoint if self-hosted)
+# appwrite/appwrite.json already points at this project (edit projectId/endpoint for another project or self-hosting)
 cd appwrite
 appwrite push functions
 ```
@@ -117,8 +119,8 @@ this team, so there is no client-side bypass.
 Fill in the repo-root `.env`:
 
 ```
-VITE_APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1"
-VITE_APPWRITE_PROJECT_ID="<your project id>"
+VITE_APPWRITE_ENDPOINT="https://sfo.cloud.appwrite.io/v1"
+VITE_APPWRITE_PROJECT_ID="6ab4ac18002f08572392"
 VITE_APPWRITE_DATABASE_ID="straindex"
 ```
 

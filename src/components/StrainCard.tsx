@@ -3,7 +3,15 @@ import { motion } from "framer-motion";
 import { Leaf, Heart, ImagePlus, Loader2 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { supabase } from "@/integrations/supabase/client";
+import { ID } from "appwrite";
+import {
+  BUCKETS,
+  DATABASE_ID,
+  storage,
+  strainImageUrl,
+  TABLES,
+  tables,
+} from "@/integrations/appwrite/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImageCropperDialog } from "@/components/ImageCropperDialog";
@@ -45,20 +53,20 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
   const handleCroppedUpload = async (blob: Blob) => {
     setUploading(true);
     try {
-      const path = `${strain.id}/${Date.now()}.jpg`;
-      const { error: upErr } = await supabase.storage
-        .from("strain-images")
-        .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
-      if (upErr) throw upErr;
+      const file = new File([blob], `${strain.id}-${Date.now()}.jpg`, { type: "image/jpeg" });
+      const created = await storage.createFile({
+        bucketId: BUCKETS.strainImages,
+        fileId: ID.unique(),
+        file,
+      });
+      const publicUrl = strainImageUrl(created.$id);
 
-      const { data: pub } = supabase.storage.from("strain-images").getPublicUrl(path);
-      const publicUrl = pub.publicUrl;
-
-      const { error: dbErr } = await supabase
-        .from("strains")
-        .update({ image_url: publicUrl })
-        .eq("id", strain.id);
-      if (dbErr) throw dbErr;
+      await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.strains,
+        rowId: strain.id,
+        data: { image_url: publicUrl },
+      });
 
       qc.invalidateQueries({ queryKey: ["strains"] });
       toast({ title: "Image updated", description: strain.name });

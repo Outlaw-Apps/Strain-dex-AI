@@ -138,15 +138,3 @@
     scrollbar-color: hsl(var(--muted)) transparent;
   }
 }
-
-/* Hide the "Made with Lovable" badge */
-#lovable-badge,
-a[href*="lovable.dev"][href*="badge"],
-a[aria-label*="Lovable" i][href*="lovable.dev"],
-a[href*="lovable.dev?utm"],
-iframe[src*="lovable.dev/badge"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}

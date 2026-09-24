@@ -71,6 +71,40 @@ Console → Functions → *function* → Settings → Variables:
 
 `APPWRITE_FUNCTION_API_ENDPOINT` and `APPWRITE_FUNCTION_PROJECT_ID` are injected automatically by the runtime.
 
+### Choosing an AI provider (OpenAI, Grok, Gemini, …)
+
+The functions talk to any **OpenAI-compatible** API. Env vars are per-function,
+so you can mix providers. What each provider supports:
+
+| Function | OpenAI (default) | xAI / Grok | Google Gemini |
+|---|---|---|---|
+| `ai-strain-import` | ✅ `gpt-4o-mini` | ✅ Grok chat model | ✅ via OpenAI-compat endpoint |
+| `generate-strain-image` | ✅ `gpt-image-1` | ✅ `grok-imagine-image-2.0` | ❌ (image gen isn't OpenAI-compatible) |
+| `voice-search-transcribe` | ✅ `whisper-1` | ✅ `grok-voice-transcribe-2.0` | ❌ (no OpenAI-compatible audio API) |
+
+**All-Grok setup** — one xAI key covers everything:
+
+```
+AI_API_KEY=<your xAI key>          # on all 3 AI functions
+AI_BASE_URL=https://api.x.ai/v1    # on all 3 AI functions
+AI_MODEL=grok-4                    # ai-strain-import only
+AI_IMAGE_MODEL=grok-imagine-image-2.0   # generate-strain-image only
+# voice-search-transcribe auto-detects api.x.ai → /v1/stt + grok-voice-transcribe-2.0
+```
+
+**Gemini** works for `ai-strain-import` only:
+
+```
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_API_KEY=<your Gemini key>
+AI_MODEL=gemini-2.5-flash          # or any current Gemini chat model
+```
+
+For voice transcription with a non-OpenAI key, **Groq** (not to be confused
+with xAI's Grok) is a cheap OpenAI-compatible option:
+`AI_BASE_URL=https://api.groq.com/openai/v1`, `AI_TRANSCRIBE_MODEL=whisper-large-v3-turbo`
+on the `voice-search-transcribe` function only.
+
 ## 5. Admins
 
 Admin access is membership in the `admins` team. Add users via

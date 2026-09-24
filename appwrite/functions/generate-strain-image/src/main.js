@@ -49,13 +49,21 @@ export default async ({ req, res, log, error }) => {
 
     log(`Generating image for: ${strain.name}`);
 
+    // Provider-specific knobs: OpenAI's images API takes `size`; xAI's Grok
+    // Imagine takes `response_format: "b64_json"`. Each rejects the other's
+    // fields, so only send what the configured provider understands.
+    const isOpenAI = AI_BASE_URL.includes("api.openai.com");
     const aiRes = await fetch(`${AI_BASE_URL}/images/generations`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${AI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: AI_IMAGE_MODEL, prompt, size: "1024x1024" }),
+      body: JSON.stringify(
+        isOpenAI
+          ? { model: AI_IMAGE_MODEL, prompt, size: "1024x1024" }
+          : { model: AI_IMAGE_MODEL, prompt, response_format: "b64_json" },
+      ),
     });
 
     if (!aiRes.ok) {

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callFunction, DATABASE_ID, FUNCTIONS, TABLES, tables } from "@/integrations/appwrite/client";
+import { fetchStrains } from "@/hooks/useStrains";
 import { Loader2, Search, Trash2, RotateCcw, Sparkles, Pencil, Layers, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { DbStrain } from "@/hooks/useStrains";
@@ -54,11 +55,7 @@ export function StrainManager() {
   const { data: strains = [], isLoading } = useQuery({
     queryKey: ["admin-strains", showDeleted],
     queryFn: async () => {
-      let query = supabase.from("strains").select("*").order("name");
-      if (!showDeleted) query = query.is("deleted_at", null);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as DbStrain[];
+      return fetchStrains({ includeDeleted: showDeleted });
     },
   });
 
@@ -70,11 +67,12 @@ export function StrainManager() {
 
   const softDelete = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("strains")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.strains,
+        rowId: id,
+        data: { deleted_at: new Date().toISOString() },
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-strains"] });
@@ -87,11 +85,12 @@ export function StrainManager() {
 
   const restore = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("strains")
-        .update({ deleted_at: null })
-        .eq("id", id);
-      if (error) throw error;
+      await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.strains,
+        rowId: id,
+        data: { deleted_at: null },
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-strains"] });
@@ -102,11 +101,11 @@ export function StrainManager() {
 
   const regenImage = useMutation({
     mutationFn: async (strain: DbStrain) => {
-      const { data, error } = await supabase.functions.invoke("generate-strain-image", {
-        body: { strainId: strain.id, name: strain.name, type: strain.type },
+      return callFunction(FUNCTIONS.generateStrainImage, {
+        strainId: strain.id,
+        name: strain.name,
+        type: strain.type,
       });
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-strains"] });

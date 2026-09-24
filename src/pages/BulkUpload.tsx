@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, Upload, Loader2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ID } from "appwrite";
+import {
+  callFunction,
+  DATABASE_ID,
+  FUNCTIONS,
+  TABLES,
+  tables,
+} from "@/integrations/appwrite/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { parseCSV, toCSV } from "@/lib/csv";
@@ -79,15 +86,10 @@ export default function BulkUpload() {
     setAiRunning(true);
     setAiResults(null);
     try {
-      const { data, error } = await supabase.functions.invoke("ai-strain-import", {
-        body: { names },
-      });
-      if (error) throw error;
-      const results = (data?.results ?? []) as {
-        name: string;
-        status: "inserted" | "failed";
-        error?: string;
-      }[];
+      const data = await callFunction<{
+        results?: { name: string; status: "inserted" | "failed"; error?: string }[];
+      }>(FUNCTIONS.aiStrainImport, { names });
+      const results = data?.results ?? [];
       setAiResults(results);
       const inserted = results.filter((r) => r.status === "inserted").length;
       const failed = results.length - inserted;
@@ -179,18 +181,29 @@ export default function BulkUpload() {
     setUploading(true);
     let inserted = 0;
     let failed = 0;
-    const batchSize = 100;
-    for (let i = 0; i < preview.length; i += batchSize) {
-      const batch = preview.slice(i, i + batchSize);
-      const { error, count } = await supabase
-        .from("strains")
-        .insert(batch as any, { count: "exact" });
-      if (error) {
-        failed += batch.length;
-        setErrors((prev) => [...prev, `Batch ${i / batchSize + 1}: ${error.message}`]);
-      } else {
-        inserted += count ?? batch.length;
-      }
+    // Appwrite has no client-side bulk insert; write rows with bounded concurrency.
+    const concurrency = 5;
+    for (let i = 0; i < preview.length; i += concurrency) {
+      const batch = preview.slice(i, i + concurrency);
+      const results = await Promise.allSettled(
+        batch.map((row) =>
+          tables.createRow({
+            databaseId: DATABASE_ID,
+            tableId: TABLES.strains,
+            rowId: ID.unique(),
+            data: row,
+          }),
+        ),
+      );
+      results.forEach((r, j) => {
+        if (r.status === "fulfilled") {
+          inserted++;
+        } else {
+          failed++;
+          const message = (r.reason as Error)?.message ?? String(r.reason);
+          setErrors((prev) => [...prev, `Row ${i + j + 2}: ${message}`]);
+        }
+      });
     }
     setUploading(false);
     setResult({ inserted, failed });

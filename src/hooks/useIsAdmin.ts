@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ADMIN_TEAM_ID, teams } from "@/integrations/appwrite/client";
 import { useAuth } from "@/hooks/useAuth";
 
+/**
+ * Admins are members of the "admins" Appwrite team. Only team members can
+ * list a team's memberships, so non-admins get a 401/403 and we return false.
+ */
 export function useIsAdmin() {
   const { user } = useAuth();
   return useQuery({
@@ -9,12 +13,12 @@ export function useIsAdmin() {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return false;
-      const { data, error } = await supabase.rpc("has_role", {
-        _user_id: user.id,
-        _role: "admin",
-      });
-      if (error) throw error;
-      return !!data;
+      try {
+        const res = await teams.listMemberships({ teamId: ADMIN_TEAM_ID });
+        return res.memberships.some((m) => m.userId === user.id && m.confirm);
+      } catch {
+        return false;
+      }
     },
   });
 }

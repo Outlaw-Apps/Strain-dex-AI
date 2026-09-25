@@ -26,7 +26,6 @@ export const DATABASE_ID =
 export const TABLES = {
   strains: "strains",
   favorites: "favorites",
-  licenseKeys: "license_keys",
 } as const;
 
 export const BUCKETS = {
@@ -34,7 +33,6 @@ export const BUCKETS = {
 } as const;
 
 export const FUNCTIONS = {
-  licenseValidate: "license-validate",
   strainsExport: "strains-export",
   aiStrainImport: "ai-strain-import",
   generateStrainImage: "generate-strain-image",

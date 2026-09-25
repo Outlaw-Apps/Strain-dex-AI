@@ -4,16 +4,6 @@
   "endpoint": "https://sfo.cloud.appwrite.io/v1",
   "functions": [
     {
-      "$id": "license-validate",
-      "name": "license-validate",
-      "runtime": "node-22",
-      "execute": ["any"],
-      "entrypoint": "src/main.js",
-      "commands": "npm install",
-      "path": "functions/license-validate",
-      "ignore": ["node_modules", ".git"]
-    },
-    {
       "$id": "strains-export",
       "name": "strains-export",
       "runtime": "node-22",

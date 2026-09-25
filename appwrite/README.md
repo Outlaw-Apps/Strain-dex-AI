@@ -4,8 +4,7 @@ This folder contains everything that replaces the old Supabase backend:
 
 - `setup.mjs` — one-shot provisioning script (database, tables, indexes, bucket, admin team, function definitions)
 - `appwrite.json` — Appwrite CLI config for deploying the functions
-- `functions/` — five Appwrite Functions (Node.js runtime):
-  - `license-validate` (execute: **any**) — validates license keys, atomically increments usage
+- `functions/` — four Appwrite Functions (Node.js runtime):
   - `strains-export` (execute: **team:admins**) — filtered CSV/JSON export
   - `ai-strain-import` (execute: **team:admins**) — researches strain names via Firecrawl + an OpenAI-compatible model and inserts/merges rows
   - `generate-strain-image` (execute: **team:admins**) — generates a strain image via an OpenAI-compatible Images API and stores it in the `strain-images` bucket
@@ -38,7 +37,6 @@ The script is idempotent and creates:
 | Database | `straindex` | — |
 | Table | `strains` | read: any · write: team `admins` |
 | Table | `favorites` | create: users · row-level per-user read/delete |
-| Table | `license_keys` | read/write: team `admins` |
 | Bucket | `strain-images` | read: any · write: team `admins` |
 | Team | `admins` | admin access = membership in this team |
 
@@ -61,8 +59,8 @@ Console → Functions → *function* → Settings → Variables:
 
 | Variable | Functions | Value |
 |---|---|---|
-| `APPWRITE_API_KEY` | all 5 | server API key (tablesDB + storage scopes) |
-| `APPWRITE_DATABASE_ID` | all 5 | optional, defaults to `straindex` |
+| `APPWRITE_API_KEY` | all 4 | server API key (tablesDB + storage scopes) |
+| `APPWRITE_DATABASE_ID` | all 4 | optional, defaults to `straindex` |
 | `AI_API_KEY` | ai-strain-import, generate-strain-image, voice-search-transcribe | OpenAI (or compatible) API key |
 | `AI_BASE_URL` | same 3 | optional, defaults to `https://api.openai.com/v1` |
 | `AI_MODEL` | ai-strain-import | optional, default `gpt-4o-mini` |
@@ -133,5 +131,4 @@ third-party cookies are blocked.
 Export `public.strains` from Supabase as CSV (columns `name, type, thc, cbd,
 description, genetics, dominant_terpene, effects, negative_effects,
 medical_uses, aromas, tastes, image_url`; arrays joined with `|`), then use the
-app's Admin → Bulk Upload CSV importer. License keys can be recreated in
-Admin → License Keys.
+app's Admin → Bulk Upload CSV importer.

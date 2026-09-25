@@ -26,18 +26,6 @@ export interface DbStrain {
 /** Fields that can be written to the strains table. */
 export type StrainUpdate = Partial<Omit<DbStrain, "id" | "created_at" | "updated_at">>;
 
-export interface LicenseKeyRow {
-  id: string;
-  key: string;
-  expires_at: string | null;
-  max_uses: number | null;
-  uses: number;
-  revoked: boolean;
-  note: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface FavoriteRow {
   id: string;
   user_id: string;
@@ -55,12 +43,6 @@ const strOrNull = (v: unknown): string | null =>
 const num = (v: unknown): number => {
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : 0;
-};
-
-const intOrNull = (v: unknown): number | null => {
-  if (v === null || v === undefined) return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
 };
 
 const strArr = (v: unknown): string[] =>
@@ -88,20 +70,6 @@ export function toStrain(row: Row): DbStrain {
     created_at: row.$createdAt,
     updated_at: row.$updatedAt,
     deleted_at: strOrNull(row.deleted_at),
-  };
-}
-
-export function toLicenseKey(row: Row): LicenseKeyRow {
-  return {
-    id: row.$id,
-    key: str(row.key),
-    expires_at: strOrNull(row.expires_at),
-    max_uses: intOrNull(row.max_uses),
-    uses: num(row.uses),
-    revoked: row.revoked === true,
-    note: strOrNull(row.note),
-    created_at: row.$createdAt,
-    updated_at: row.$updatedAt,
   };
 }
 

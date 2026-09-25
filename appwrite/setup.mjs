@@ -121,16 +121,6 @@ await ensure(`table "favorites"`, () =>
   }),
 );
 
-await ensure(`table "license_keys"`, () =>
-  tablesDB.createTable({
-    databaseId: DATABASE_ID,
-    tableId: "license_keys",
-    name: "License Keys",
-    rowSecurity: false,
-    permissions: [Permission.read(Role.team(ADMIN_TEAM_ID)), ...ADMIN_PERMS],
-  }),
-);
-
 // ----------------------------------------------------------------- columns
 const strainColumnKeys = [
   "name", "type", "thc", "cbd", "dominant_terpene", "description", "genetics",
@@ -163,20 +153,9 @@ const favoriteColumns = [
 ];
 for (const [key, fn] of favoriteColumns) await ensureColumn("favorites", key, fn);
 
-const licenseColumns = [
-  ["key", () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "key", size: 255, required: true })],
-  ["expires_at", () => tablesDB.createDatetimeColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "expires_at", required: false })],
-  ["max_uses", () => tablesDB.createIntegerColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "max_uses", required: false, min: 0 })],
-  ["uses", () => tablesDB.createIntegerColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "uses", required: false, min: 0, xdefault: 0 })],
-  ["revoked", () => tablesDB.createBooleanColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "revoked", required: false, xdefault: false })],
-  ["note", () => tablesDB.createStringColumn({ databaseId: DATABASE_ID, tableId: "license_keys", key: "note", size: 1024, required: false })],
-];
-for (const [key, fn] of licenseColumns) await ensureColumn("license_keys", key, fn);
-
 // Columns are created asynchronously — wait until they're available.
 await waitForColumns("strains", strainColumnKeys);
 await waitForColumns("favorites", ["user_id", "strain_id"]);
-await waitForColumns("license_keys", ["key", "expires_at", "max_uses", "uses", "revoked", "note"]);
 
 // ----------------------------------------------------------------- indexes
 const strainIndexes = [
@@ -204,16 +183,6 @@ for (const [key, type, columns] of favoriteIndexes) {
   );
 }
 
-await ensure("index license_keys.key_unique", () =>
-  tablesDB.createIndex({
-    databaseId: DATABASE_ID,
-    tableId: "license_keys",
-    key: "key_unique",
-    type: IndexType.Unique,
-    columns: ["key"],
-  }),
-);
-
 // ------------------------------------------------------------------ bucket
 await ensure(`bucket "${BUCKET_ID}"`, () =>
   storage.createBucket({
@@ -234,7 +203,6 @@ await ensure(`team "${ADMIN_TEAM_ID}"`, () =>
 
 // --------------------------------------------------------------- functions
 const functionDefs = [
-  { id: "license-validate", execute: ["any"] },
   { id: "strains-export", execute: [`team:${ADMIN_TEAM_ID}`] },
   { id: "ai-strain-import", execute: [`team:${ADMIN_TEAM_ID}`] },
   { id: "generate-strain-image", execute: [`team:${ADMIN_TEAM_ID}`] },

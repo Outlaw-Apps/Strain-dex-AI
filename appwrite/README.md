@@ -1,0 +1,134 @@
+# Appwrite backend for Strain-dex AI
+
+This folder contains everything that replaces the old Supabase backend:
+
+- `setup.mjs` — one-shot provisioning script (database, tables, indexes, bucket, admin team, function definitions)
+- `appwrite.json` — Appwrite CLI config for deploying the functions
+- `functions/` — four Appwrite Functions (Node.js runtime):
+  - `strains-export` (execute: **team:admins**) — filtered CSV/JSON export
+  - `ai-strain-import` (execute: **team:admins**) — researches strain names via Firecrawl + an OpenAI-compatible model and inserts/merges rows
+  - `generate-strain-image` (execute: **team:admins**) — generates a strain image via an OpenAI-compatible Images API and stores it in the `strain-images` bucket
+  - `voice-search-transcribe` (execute: **users**) — transcribes WAV audio via an OpenAI-compatible Transcriptions API
+
+## 1. Create the project
+
+1. Create a project in [Appwrite Cloud](https://cloud.appwrite.io) (or your self-hosted instance).
+2. Add a **Web** platform with your dev hostname (e.g. `localhost`) — and your production domain later.
+3. Create an **API key** (Console → Overview → API keys) with scopes: `databases`/`tablesDB`, `collections`/`tables`, `attributes`/`columns`, `indexes`, `storage`, `teams`, `functions`, `users`.
+
+## 2. Provision resources
+
+```sh
+npm install node-appwrite   # once
+
+# PowerShell:
+$env:APPWRITE_ENDPOINT="https://sfo.cloud.appwrite.io/v1"   # this project's regional endpoint (Console → Settings)
+$env:APPWRITE_PROJECT_ID="<your project id>"
+$env:APPWRITE_API_KEY="<your api key>"
+node appwrite/setup.mjs
+```
+
+Appwrite Cloud projects are regional (`fra`, `nyc`, `sfo`, `syd`, `sgp`, …) and the generic `https://cloud.appwrite.io/v1` endpoint is rejected with *Project is not accessible in this region* — copy the endpoint from Console → Settings. The script also reads `APPWRITE_ENDPOINT` / `APPWRITE_PROJECT_ID` from the repo-root `.env` when they aren't set in the shell (only `APPWRITE_API_KEY` must be set manually).
+
+The script is idempotent and creates:
+
+| Resource | ID | Permissions |
+|---|---|---|
+| Database | `straindex` | — |
+| Table | `strains` | read: any · write: team `admins` |
+| Table | `favorites` | create: users · row-level per-user read/delete |
+| Bucket | `strain-images` | read: any · write: team `admins` |
+| Team | `admins` | admin access = membership in this team |
+
+## 3. Deploy the functions
+
+With the [Appwrite CLI](https://appwrite.io/docs/tooling/command-line/installation):
+
+```sh
+appwrite login
+# appwrite/appwrite.json already points at this project (edit projectId/endpoint for another project or self-hosting)
+cd appwrite
+appwrite push functions
+```
+
+Or via the Console: open each function → **Deployments** → upload the function folder (entrypoint `src/main.js`, build command `npm install`).
+
+## 4. Set function environment variables
+
+Console → Functions → *function* → Settings → Variables:
+
+| Variable | Functions | Value |
+|---|---|---|
+| `APPWRITE_API_KEY` | all 4 | server API key (tablesDB + storage scopes) |
+| `APPWRITE_DATABASE_ID` | all 4 | optional, defaults to `straindex` |
+| `AI_API_KEY` | ai-strain-import, generate-strain-image, voice-search-transcribe | OpenAI (or compatible) API key |
+| `AI_BASE_URL` | same 3 | optional, defaults to `https://api.openai.com/v1` |
+| `AI_MODEL` | ai-strain-import | optional, default `gpt-4o-mini` |
+| `AI_IMAGE_MODEL` | generate-strain-image | optional, default `gpt-image-1` |
+| `AI_TRANSCRIBE_MODEL` | voice-search-transcribe | optional, default `whisper-1` |
+| `FIRECRAWL_API_KEY` | ai-strain-import | firecrawl.dev key |
+| `APPWRITE_BUCKET_ID` | generate-strain-image | optional, default `strain-images` |
+
+`APPWRITE_FUNCTION_API_ENDPOINT` and `APPWRITE_FUNCTION_PROJECT_ID` are injected automatically by the runtime.
+
+### Choosing an AI provider (OpenAI, Grok, Gemini, …)
+
+The functions talk to any **OpenAI-compatible** API. Env vars are per-function,
+so you can mix providers. What each provider supports:
+
+| Function | OpenAI (default) | xAI / Grok | Google Gemini |
+|---|---|---|---|
+| `ai-strain-import` | ✅ `gpt-4o-mini` | ✅ Grok chat model | ✅ via OpenAI-compat endpoint |
+| `generate-strain-image` | ✅ `gpt-image-1` | ✅ `grok-imagine-image-2.0` | ❌ (image gen isn't OpenAI-compatible) |
+| `voice-search-transcribe` | ✅ `whisper-1` | ✅ `grok-voice-transcribe-2.0` | ❌ (no OpenAI-compatible audio API) |
+
+**All-Grok setup** — one xAI key covers everything:
+
+```
+AI_API_KEY=<your xAI key>          # on all 3 AI functions
+AI_BASE_URL=https://api.x.ai/v1    # on all 3 AI functions
+AI_MODEL=grok-4                    # ai-strain-import only
+AI_IMAGE_MODEL=grok-imagine-image-2.0   # generate-strain-image only
+# voice-search-transcribe auto-detects api.x.ai → /v1/stt + grok-voice-transcribe-2.0
+```
+
+**Gemini** works for `ai-strain-import` only:
+
+```
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_API_KEY=<your Gemini key>
+AI_MODEL=gemini-2.5-flash          # or any current Gemini chat model
+```
+
+For voice transcription with a non-OpenAI key, **Groq** (not to be confused
+with xAI's Grok) is a cheap OpenAI-compatible option:
+`AI_BASE_URL=https://api.groq.com/openai/v1`, `AI_TRANSCRIBE_MODEL=whisper-large-v3-turbo`
+on the `voice-search-transcribe` function only.
+
+## 5. Admins
+
+Admin access is membership in the `admins` team. Add users via
+Console → Auth → Teams → `admins` → Add member (or with the server SDK/CLI).
+Table write permissions and the admin-only functions are already restricted to
+this team, so there is no client-side bypass.
+
+## 6. Point the app at the project
+
+Fill in the repo-root `.env`:
+
+```
+VITE_APPWRITE_ENDPOINT="https://sfo.cloud.appwrite.io/v1"
+VITE_APPWRITE_PROJECT_ID="6ab4ac18002f08572392"
+VITE_APPWRITE_DATABASE_ID="straindex"
+```
+
+Works for web, Electron, and Android (Capacitor) — the app persists the session
+secret in `localStorage` so sign-in survives restarts in webviews where
+third-party cookies are blocked.
+
+## Migrating data from Supabase
+
+Export `public.strains` from Supabase as CSV (columns `name, type, thc, cbd,
+description, genetics, dominant_terpene, effects, negative_effects,
+medical_uses, aromas, tastes, image_url`; arrays joined with `|`), then use the
+app's Admin → Bulk Upload CSV importer.

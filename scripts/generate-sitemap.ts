@@ -1,12 +1,16 @@
 // Runs before `vite dev` and `vite build` (predev/prebuild hooks); writes public/sitemap.xml.
-// Includes static routes plus one entry per public strain (fetched from Supabase).
+// Includes static routes plus one entry per public strain (fetched from Appwrite).
 
 import { writeFileSync } from "fs";
 import { resolve } from "path";
-import { createClient } from "@supabase/supabase-js";
 
 // TODO: replace with your project URL once a project name or custom domain is set.
 const BASE_URL = "";
+
+const APPWRITE_ENDPOINT = process.env.VITE_APPWRITE_ENDPOINT;
+const APPWRITE_PROJECT = process.env.VITE_APPWRITE_PROJECT_ID;
+const APPWRITE_DATABASE = process.env.VITE_APPWRITE_DATABASE_ID || "straindex";
+const PAGE_SIZE = 500;
 
 interface SitemapEntry {
   path: string;
@@ -25,19 +29,42 @@ function toSlug(name: string) {
 }
 
 async function loadStrainEntries(): Promise<SitemapEntry[]> {
-  const url = process.env.VITE_SUPABASE_URL;
-  const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return [];
+  if (!APPWRITE_ENDPOINT || !APPWRITE_PROJECT) return [];
   try {
-    const supabase = createClient(url, key);
-    const { data, error } = await supabase.from("strains").select("name, updated_at");
-    if (error || !data) return [];
-    return data.map((s: any) => ({
-      path: `/strain/${toSlug(s.name)}`,
-      lastmod: s.updated_at ? new Date(s.updated_at).toISOString().slice(0, 10) : undefined,
-      changefreq: "monthly",
-      priority: "0.7",
-    }));
+    const entries: SitemapEntry[] = [];
+    let cursor: string | undefined;
+    for (;;) {
+      const queries = [
+        JSON.stringify({ method: "isNull", attribute: "deleted_at", values: [] }),
+        JSON.stringify({ method: "select", attribute: null, values: ["name"] }),
+        JSON.stringify({ method: "limit", attribute: null, values: [PAGE_SIZE] }),
+      ];
+      if (cursor) {
+        queries.push(JSON.stringify({ method: "cursorAfter", attribute: null, values: [cursor] }));
+      }
+      const url = new URL(
+        `${APPWRITE_ENDPOINT}/tablesdb/${APPWRITE_DATABASE}/tables/strains/rows`,
+      );
+      for (const q of queries) url.searchParams.append("queries[]", q);
+      const res = await fetch(url, { headers: { "X-Appwrite-Project": APPWRITE_PROJECT } });
+      if (!res.ok) return entries;
+      const data = (await res.json()) as {
+        rows?: Array<{ $id: string; $updatedAt?: string; name?: string }>;
+      };
+      const rows = data.rows ?? [];
+      for (const s of rows) {
+        if (!s.name) continue;
+        entries.push({
+          path: `/strain/${toSlug(s.name)}`,
+          lastmod: s.$updatedAt ? s.$updatedAt.slice(0, 10) : undefined,
+          changefreq: "monthly",
+          priority: "0.7",
+        });
+      }
+      if (rows.length < PAGE_SIZE) break;
+      cursor = rows[rows.length - 1].$id;
+    }
+    return entries;
   } catch {
     return [];
   }

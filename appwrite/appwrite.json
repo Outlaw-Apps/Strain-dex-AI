@@ -1,0 +1,47 @@
+{
+  "projectId": "6ab4ac18002f08572392",
+  "projectName": "strain-dex-ai",
+  "endpoint": "https://sfo.cloud.appwrite.io/v1",
+  "functions": [
+    {
+      "$id": "strains-export",
+      "name": "strains-export",
+      "runtime": "node-22",
+      "execute": ["team:admins"],
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "functions/strains-export",
+      "ignore": ["node_modules", ".git"]
+    },
+    {
+      "$id": "ai-strain-import",
+      "name": "ai-strain-import",
+      "runtime": "node-22",
+      "execute": ["team:admins"],
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "functions/ai-strain-import",
+      "ignore": ["node_modules", ".git"]
+    },
+    {
+      "$id": "generate-strain-image",
+      "name": "generate-strain-image",
+      "runtime": "node-22",
+      "execute": ["team:admins"],
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "functions/generate-strain-image",
+      "ignore": ["node_modules", ".git"]
+    },
+    {
+      "$id": "voice-search-transcribe",
+      "name": "voice-search-transcribe",
+      "runtime": "node-22",
+      "execute": ["users"],
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "functions/voice-search-transcribe",
+      "ignore": ["node_modules", ".git"]
+    }
+  ]
+}

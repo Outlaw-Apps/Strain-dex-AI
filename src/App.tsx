@@ -9,7 +9,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AdminGuard } from "@/components/AdminGuard";
 import { AgeGate } from "@/components/AgeGate";
-import { LicenseGate } from "@/components/LicenseGate";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -18,8 +17,6 @@ const BulkUpload = lazy(() => import("./pages/BulkUpload"));
 const StrainPage = lazy(() => import("./pages/StrainPage"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
-const LicenseAdmin = lazy(() => import("./pages/LicenseAdmin"));
-
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,7 +41,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <LicenseGate>
             <AgeGate />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
@@ -61,18 +57,9 @@ const App = () => (
                     </AdminGuard>
                   }
                 />
-                <Route
-                  path="/admin/licenses"
-                  element={
-                    <AdminGuard>
-                      <LicenseAdmin />
-                    </AdminGuard>
-                  }
-                />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-            </LicenseGate>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

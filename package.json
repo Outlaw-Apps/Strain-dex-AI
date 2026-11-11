@@ -1,7 +1,7 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "strain-dex-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "predev": "bunx tsx scripts/generate-sitemap.ts",
@@ -50,6 +50,7 @@
     "@tanstack/react-query": "^5.83.0",
     "appwrite": "^27.0.0",
     "class-variance-authority": "^0.7.1",
+    "cloudflare": "^7.3.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
@@ -58,7 +59,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
-    "node-appwrite": "^29.0.0",
+    "node-appwrite": "^29.4.0",
     "node-fetch": "^3.3.2",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -105,6 +106,15 @@
     "esbuild@0.25.0": true,
     "sharp@0.32.6": true,
     "electron-winstaller@5.4.0": true,
-    "@swc/core@1.16.2": true
+    "@swc/core@1.16.2": true,
+    "vite@8.3.5": true,
+    "electron@44.9.1": true,
+    "electron-builder@26.15.3": true,
+    "typescript@5.8.3": true,
+    "wrangler@4.151.3": true,
+    "@vitejs/plugin-react-swc@4.3.1": true,
+    "eslint@9.32.0": true,
+    "eslint-plugin-react-hooks@5.2.0": true,
+    "eslint-plugin-react-refresh@0.4.20": true
   }
 }

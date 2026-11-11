@@ -31,6 +31,23 @@ npm run lint
 npm test             # vitest
 ```
 
+## Cloudflare Git deployments
+
+Worker `strain-dex-ai` builds `Outlaw-Apps/Strain-dex-AI` from `main`, with
+root directory `/`, build command `npm run build`, and deploy command
+`npx wrangler deploy`. Configure these public **build** variables:
+
+```env
+VITE_APPWRITE_ENDPOINT=https://sfo.cloud.appwrite.io/v1
+VITE_APPWRITE_PROJECT_ID=6ab4ac18002f08572392
+VITE_APPWRITE_DATABASE_ID=straindex
+```
+
+Cloudflare's linked GitHub user must be `Outlaw-Apps`. A different linked user
+can hide this repository even when the Cloudflare GitHub App is installed.
+Keep `AI_API_KEY` and `APPWRITE_API_KEY` in Appwrite function variables; never
+expose them as `VITE_` variables.
+
 ## Platform builds
 
 - **Web**: `npm run build` → `dist/`

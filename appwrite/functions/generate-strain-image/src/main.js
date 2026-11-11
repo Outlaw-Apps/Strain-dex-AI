@@ -1,4 +1,5 @@
-import { Client, ID, InputFile, Storage, TablesDB } from "node-appwrite";
+import { Client, ID, Storage, TablesDB } from "node-appwrite";
+import { InputFile } from "node-appwrite/file";
 
 /**
  * generate-strain-image — execute: team:admins.

@@ -14,6 +14,9 @@ This folder contains everything that replaces the old Supabase backend:
 
 1. Create a project in [Appwrite Cloud](https://cloud.appwrite.io) (or your self-hosted instance).
 2. Add a **Web** platform with your dev hostname (e.g. `localhost`) — and your production domain later.
+   Use the exact hostname, without a scheme, path, or leading dot. Setup registers
+   `localhost` and `strain-dex-ai.outlw.workers.dev`; override the comma-separated
+   `APPWRITE_WEB_HOSTNAMES` when using other domains.
 3. Create an **API key** (Console → Overview → API keys) with scopes: `databases`/`tablesDB`, `collections`/`tables`, `attributes`/`columns`, `indexes`, `storage`, `teams`, `functions`, `users`.
 
 ## 2. Provision resources
@@ -51,7 +54,23 @@ cd appwrite
 appwrite push functions
 ```
 
-Or via the Console: open each function → **Deployments** → upload the function folder (entrypoint `src/main.js`, build command `npm install`).
+Or via the Console: open each function → **Deployments** → upload the function folder (entrypoint `src/main.js`, build command `npm ci`).
+
+For GitHub deployments, connect `Outlaw-Apps/Strain-dex-AI`, branch `main`, and
+set each function's **Root directory** to `appwrite/functions/<function-id>`.
+The entrypoint stays `src/main.js`. Using the repository root installs the
+frontend dependencies and leaves the function entrypoint missing. Re-running
+setup corrects existing function roots as well as newly created functions.
+
+Before deploying, install and test each function independently:
+
+```powershell
+Get-ChildItem appwrite/functions -Directory | ForEach-Object { npm ci --prefix $_.FullName }
+npm run test:functions
+```
+
+The GitHub workflow runs these checks with Node 22 so the frontend's SDK cannot
+hide incompatible function dependencies.
 
 ## 4. Set function environment variables
 
@@ -70,6 +89,13 @@ Console → Functions → *function* → Settings → Variables:
 | `APPWRITE_BUCKET_ID` | generate-strain-image | optional, default `strain-images` |
 
 `APPWRITE_FUNCTION_API_ENDPOINT` and `APPWRITE_FUNCTION_PROJECT_ID` are injected automatically by the runtime.
+
+The repo-root `.env` is not uploaded with the function folders. Set `AI_API_KEY`
+in each AI function's variables, and use a key issued by the provider in
+`AI_BASE_URL`. xAI's `Incorrect API key provided` response requires replacing
+the key in Appwrite; changing CORS or function permissions cannot fix it.
+Function variables override project variables with the same name. Update the
+function-level key too, then redeploy the function to refresh its runtime.
 
 ### Choosing an AI provider (OpenAI, Grok, Gemini, …)
 
@@ -91,6 +117,9 @@ AI_MODEL=grok-4                    # ai-strain-import only
 AI_IMAGE_MODEL=grok-imagine-image-2.0   # generate-strain-image only
 # voice-search-transcribe auto-detects api.x.ai → /v1/stt + grok-voice-transcribe-2.0
 ```
+
+If setting `AI_TRANSCRIBE_MODEL` explicitly, use exactly
+`grok-voice-transcribe-2.0` (without extra text or numbers).
 
 **Gemini** works for `ai-strain-import` only:
 

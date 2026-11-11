@@ -1,0 +1,25 @@
+name: Appwrite functions
+
+on:
+  push:
+    paths: ["appwrite/**", ".github/workflows/functions.yml"]
+  pull_request:
+    paths: ["appwrite/**", ".github/workflows/functions.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install each function's dependencies
+        run: |
+          for dir in appwrite/functions/*; do
+            npm ci --prefix "$dir" --ignore-scripts --no-audit --no-fund
+          done
+      - run: npm run test:functions

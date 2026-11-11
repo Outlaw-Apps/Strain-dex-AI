@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "preview": "npm run build && wrangler dev",
     "test": "vitest run",
+    "test:functions": "node --test appwrite/functions.test.mjs",
     "test:watch": "vitest",
     "deploy": "npm run build && wrangler deploy"
   },

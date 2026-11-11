@@ -14,6 +14,7 @@
 import {
   Client,
   Functions,
+  ID,
   TablesDBIndexType as IndexType,
   Permission,
   Role,
@@ -21,6 +22,7 @@ import {
   TablesDB,
   Teams,
 } from "node-appwrite";
+import { updateFunctionConfig } from "./function-config.mjs";
 
 // Fall back to the repo-root .env (Console → Settings → "Download .env"); shell vars take precedence.
 try {
@@ -48,6 +50,29 @@ const tablesDB = new TablesDB(client);
 const storage = new Storage(client);
 const teamsApi = new Teams(client);
 const functionsApi = new Functions(client);
+
+// Register exact browser hostnames; a leading dot is not a valid web origin.
+const webHostnames = (process.env.APPWRITE_WEB_HOSTNAMES || "localhost,strain-dex-ai.outlw.workers.dev")
+  .split(",").map((hostname) => hostname.trim()).filter(Boolean);
+const platformsUrl = `${ENDPOINT}/projects/${PROJECT_ID}/platforms`;
+const platformHeaders = {
+  "X-Appwrite-Project": PROJECT_ID,
+  "X-Appwrite-Key": API_KEY,
+  "Content-Type": "application/json",
+};
+const platformsResponse = await fetch(platformsUrl, { headers: platformHeaders });
+if (!platformsResponse.ok) throw new Error(`Cannot list Appwrite platforms (${platformsResponse.status})`);
+const { platforms } = await platformsResponse.json();
+for (const hostname of new Set(webHostnames)) {
+  if (platforms.some((platform) => platform.type === "web" && platform.hostname === hostname)) continue;
+  const response = await fetch(platformsUrl, {
+    method: "POST",
+    headers: platformHeaders,
+    body: JSON.stringify({ platformId: ID.unique(), type: "web", name: `Strain-dex AI (${hostname})`, hostname }),
+  });
+  if (!response.ok) throw new Error(`Cannot register Appwrite web platform ${hostname} (${response.status})`);
+  console.log(`✔ web platform "${hostname}"`);
+}
 
 const ADMIN_PERMS = [
   Permission.create(Role.team(ADMIN_TEAM_ID)),
@@ -209,6 +234,7 @@ const functionDefs = [
   { id: "voice-search-transcribe", execute: ["users"] },
 ];
 for (const f of functionDefs) {
+  const providerRootDirectory = `appwrite/functions/${f.id}`;
   await ensure(`function "${f.id}"`, () =>
     functionsApi.create({
       functionId: f.id,
@@ -216,10 +242,12 @@ for (const f of functionDefs) {
       runtime: RUNTIME,
       execute: f.execute,
       entrypoint: "src/main.js",
-      commands: "npm install",
+      commands: "npm ci",
+      providerRootDirectory,
       enabled: true,
     }),
   );
+  await updateFunctionConfig(functionsApi, f.id, providerRootDirectory);
 }
 
 console.log(`

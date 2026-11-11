@@ -15,7 +15,9 @@ export default async ({ req, res, error }) => {
       return res.json({ error: "AI provider not configured (AI_API_KEY missing)" }, 500);
     }
     const AI_BASE_URL = (process.env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
-    const MODEL = process.env.AI_TRANSCRIBE_MODEL || "whisper-1";
+    const isXai = new URL(AI_BASE_URL).hostname === "api.x.ai";
+    const MODEL = process.env.AI_TRANSCRIBE_MODEL || (isXai ? "grok-voice-transcribe-2.0" : "whisper-1");
+    const transcribeUrl = `${AI_BASE_URL}${isXai ? "/stt" : "/audio/transcriptions"}`;
 
     const body =
       req.bodyJson && typeof req.bodyJson === "object" && Object.keys(req.bodyJson).length
@@ -42,7 +44,7 @@ export default async ({ req, res, error }) => {
       body.filename || "recording.wav",
     );
 
-    const aiRes = await fetch(`${AI_BASE_URL}/audio/transcriptions`, {
+    const aiRes = await fetch(transcribeUrl, {
       method: "POST",
       headers: { Authorization: `Bearer ${AI_API_KEY}` },
       body: upstream,

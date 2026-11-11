@@ -9,8 +9,9 @@
       "runtime": "node-22",
       "execute": ["team:admins"],
       "entrypoint": "src/main.js",
-      "commands": "npm install",
+      "commands": "npm ci",
       "path": "functions/strains-export",
+      "providerRootDirectory": "appwrite/functions/strains-export",
       "ignore": ["node_modules", ".git"]
     },
     {
@@ -19,8 +20,9 @@
       "runtime": "node-22",
       "execute": ["team:admins"],
       "entrypoint": "src/main.js",
-      "commands": "npm install",
+      "commands": "npm ci",
       "path": "functions/ai-strain-import",
+      "providerRootDirectory": "appwrite/functions/ai-strain-import",
       "ignore": ["node_modules", ".git"]
     },
     {
@@ -29,8 +31,9 @@
       "runtime": "node-22",
       "execute": ["team:admins"],
       "entrypoint": "src/main.js",
-      "commands": "npm install",
+      "commands": "npm ci",
       "path": "functions/generate-strain-image",
+      "providerRootDirectory": "appwrite/functions/generate-strain-image",
       "ignore": ["node_modules", ".git"]
     },
     {
@@ -39,8 +42,9 @@
       "runtime": "node-22",
       "execute": ["users"],
       "entrypoint": "src/main.js",
-      "commands": "npm install",
+      "commands": "npm ci",
       "path": "functions/voice-search-transcribe",
+      "providerRootDirectory": "appwrite/functions/voice-search-transcribe",
       "ignore": ["node_modules", ".git"]
     }
   ]

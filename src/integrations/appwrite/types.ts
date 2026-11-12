@@ -1,4 +1,5 @@
 import type { Models } from "appwrite";
+import { normalizeStrainList } from "@/lib/strainFields";
 
 export type StrainType = "Sativa" | "Indica" | "Hybrid";
 
@@ -35,18 +36,18 @@ export interface FavoriteRow {
 
 type Row = Models.DefaultRow;
 
-const str = (v: unknown): string => (typeof v === "string" ? v : "");
+const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 
 const strOrNull = (v: unknown): string | null =>
-  typeof v === "string" && v ? v : null;
+  typeof v === "string" && v.trim() ? v.trim() : null;
 
 const num = (v: unknown): number => {
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : 0;
 };
 
-const strArr = (v: unknown): string[] =>
-  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+/** List columns can arrive as arrays, JSON strings or delimited strings. */
+const strArr = (v: unknown): string[] => normalizeStrainList(v);
 
 const STRAIN_TYPES: StrainType[] = ["Sativa", "Indica", "Hybrid"];
 

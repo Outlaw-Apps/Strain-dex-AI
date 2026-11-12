@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Leaf, Droplets, Smile, Frown, Heart, Wind,
@@ -8,7 +9,10 @@ import {
 } from "lucide-react";
 import type { DbStrain } from "@/hooks/useStrains";
 import { ShareButton } from "@/components/ShareButton";
+import { StrainTraitGroup, StrainTraitPills, StrainTraitSection } from "@/components/StrainTrait";
+import { cn } from "@/lib/utils";
 import { toSlug } from "@/lib/slug";
+import { formatPercent, normalizeStrainList, splitParents, textOr } from "@/lib/strainFields";
 
 
 interface StrainDetailProps {
@@ -59,21 +63,6 @@ const aromaIcons: Record<string, React.ReactNode> = {
   Hay: <Wheat className="w-4 h-4" />,
 };
 
-const effectColors: Record<string, string> = {
-  Happy: "text-primary bg-primary/10 border-primary/20",
-  Relaxed: "text-blue-400 bg-blue-400/10 border-blue-400/20",
-  Euphoric: "text-amber-400 bg-amber-400/10 border-amber-400/20",
-  Creative: "text-violet-400 bg-violet-400/10 border-violet-400/20",
-  Uplifted: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
-  Energetic: "text-orange-400 bg-orange-400/10 border-orange-400/20",
-  Focused: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-  Sleepy: "text-indigo-400 bg-indigo-400/10 border-indigo-400/20",
-  Hungry: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
-};
-
-const positiveEffectDefault = "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
-const negativeEffectClass = "text-rose-400 bg-rose-500/10 border-rose-500/25";
-
 const effectIcons: Record<string, React.ReactNode> = {
   Happy: <Smile className="w-4 h-4" />,
   Relaxed: <Moon className="w-4 h-4" />,
@@ -97,6 +86,10 @@ const negativeEffectIcons: Record<string, React.ReactNode> = {
   Headache: <Skull className="w-4 h-4" />,
   Irritable: <Angry className="w-4 h-4" />,
 };
+
+const defaultEffectIcon = <Smile className="w-4 h-4" />;
+const defaultNegativeEffectIcon = <Frown className="w-4 h-4" />;
+const defaultMedicalIcon = <Heart className="w-4 h-4" />;
 
 const defaultAromaIcon = <Droplets className="w-4 h-4 text-primary/60" aria-label="Unmapped scent" />;
 const defaultTasteIcon = <Apple className="w-4 h-4 text-primary/60" aria-label="Unmapped taste" />;
@@ -149,12 +142,6 @@ const iconForKeyword = (
   return hit ? map[hit] : fallback;
 };
 
-const splitParents = (g: string) =>
-  g
-    .split(/\s*(?:x|×|\/|,|\+)\s*/i)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
 const APPEARANCE_KEYWORDS = [
   "Purple", "Green", "Orange", "Amber", "Frosty", "Trichomes",
   "Dense", "Chunky", "Wispy", "Long", "Pistils",
@@ -163,6 +150,13 @@ const APPEARANCE_KEYWORDS = [
 
 
 export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: StrainDetailProps) {
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+
+  // Reset the long-description toggle when the sheet switches strains.
+  useEffect(() => {
+    setDescriptionExpanded(false);
+  }, [strain?.id]);
+
   if (!strain) return null;
 
   const badgeClass =
@@ -171,6 +165,19 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
       : strain.type === "Sativa"
       ? "badge-sativa"
       : "badge-hybrid";
+
+  // Data can be missing or arrive as import artefacts, so normalise before render.
+  const name = textOr(strain.name, "Unnamed strain");
+  const description = textOr(strain.description, "");
+  const genetics = textOr(strain.genetics, "");
+  const terpene = textOr(strain.dominant_terpene, "—");
+  const aromas = normalizeStrainList(strain.aromas);
+  const tastes = normalizeStrainList(strain.tastes);
+  const effects = normalizeStrainList(strain.effects);
+  const negativeEffects = normalizeStrainList(strain.negative_effects);
+  const medicalUses = normalizeStrainList(strain.medical_uses);
+  const parents = splitParents(genetics);
+  const canExpandDescription = description.length > 260;
 
   return (
     <AnimatePresence>
@@ -190,7 +197,8 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
             exit={{ opacity: 0, y: 40 }}
             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full sm:max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-card border border-border scrollbar-thin"
+            className="relative w-full sm:max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-t-3xl sm:rounded-3xl bg-card border border-border scrollbar-thin"
+            data-testid="strain-detail-scroll"
           >
             {/* Drag handle for mobile */}
             <div className="sm:hidden flex justify-center pt-3 pb-1">
@@ -209,9 +217,9 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                 </button>
               )}
               <ShareButton
-                title={`${strain.name} — Strain Dex`}
-                text={strain.description?.slice(0, 120)}
-                url={typeof window !== "undefined" ? `${window.location.origin}/strain/${toSlug(strain.name)}` : undefined}
+                title={`${name} — Strain Dex`}
+                text={description.slice(0, 120)}
+                url={typeof window !== "undefined" ? `${window.location.origin}/strain/${toSlug(name)}` : undefined}
               />
               <button
                 onClick={onClose}
@@ -224,136 +232,121 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
             </div>
 
             {/* Header */}
-            <div className="relative h-40 sm:h-48 md:h-64 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
+            <div className="relative h-40 sm:h-48 md:h-64 bg-gradient-to-br from-secondary to-muted flex items-center justify-center overflow-hidden">
               {strain.image_url ? (
-                <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                <img src={strain.image_url} alt={name} className="w-full h-full object-cover" />
               ) : (
                 <Leaf className="w-20 h-20 md:w-24 md:h-24 text-primary/20" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
               <div className="absolute bottom-3 left-4 right-4 sm:bottom-4 sm:left-6 sm:right-6">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
-                    {strain.name}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <h2
+                    title={name}
+                    className="line-clamp-2 min-w-0 max-w-full break-words font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground"
+                  >
+                    {name}
                   </h2>
-                  <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium ${badgeClass}`}>
+                  <span className={`shrink-0 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium ${badgeClass}`}>
                     {strain.type}
                   </span>
                 </div>
-                <p className="text-muted-foreground text-xs sm:text-sm mt-1">{strain.genetics}</p>
+                <p className="mt-1 line-clamp-2 break-words text-muted-foreground text-xs sm:text-sm">
+                  {genetics || "Lineage unknown"}
+                </p>
               </div>
             </div>
 
             <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Vitals */}
               <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                <div className="text-center p-3 sm:p-4 rounded-2xl bg-secondary">
+                <div className="min-w-0 text-center p-3 sm:p-4 rounded-2xl bg-secondary">
                   <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">THC</p>
-                  <p className="text-xl sm:text-2xl font-display font-bold neon-text mt-1">{strain.thc}%</p>
+                  <p className="text-xl sm:text-2xl font-display font-bold neon-text mt-1 tabular-nums">{formatPercent(strain.thc)}</p>
                 </div>
-                <div className="text-center p-3 sm:p-4 rounded-2xl bg-secondary">
+                <div className="min-w-0 text-center p-3 sm:p-4 rounded-2xl bg-secondary">
                   <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">CBD</p>
-                  <p className="text-xl sm:text-2xl font-display font-bold text-foreground mt-1">{strain.cbd}%</p>
+                  <p className="text-xl sm:text-2xl font-display font-bold text-foreground mt-1 tabular-nums">{formatPercent(strain.cbd)}</p>
                 </div>
-                <div className="text-center p-3 sm:p-4 rounded-2xl bg-secondary">
+                <div className="min-w-0 text-center p-3 sm:p-4 rounded-2xl bg-secondary">
                   <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">Terpene</p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    <FlaskConical className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                    <p className="text-xs sm:text-sm font-display font-bold text-foreground">{strain.dominant_terpene}</p>
+                  <div className="flex min-w-0 items-center justify-center gap-1 mt-1">
+                    <FlaskConical className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-primary" />
+                    <p title={terpene} className="min-w-0 truncate text-xs sm:text-sm font-display font-bold text-foreground">
+                      {terpene}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Description */}
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-display font-semibold text-base sm:text-lg text-foreground mb-2">About</h3>
-                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{strain.description}</p>
+                <p
+                  className={cn(
+                    "break-words text-muted-foreground text-xs sm:text-sm leading-relaxed",
+                    canExpandDescription && !descriptionExpanded && "line-clamp-4",
+                  )}
+                >
+                  {description || "No description yet."}
+                </p>
+                {canExpandDescription && (
+                  <button
+                    type="button"
+                    onClick={() => setDescriptionExpanded((v) => !v)}
+                    aria-expanded={descriptionExpanded}
+                    className="mt-2 text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+                  >
+                    {descriptionExpanded ? "Show less" : "Show more"}
+                  </button>
+                )}
               </div>
 
-              {/* Detail grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-                {/* Aromas */}
-                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Droplets className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Aroma</h4>
+              {/* Leafly-style trait cards */}
+              <div className="space-y-3 sm:space-y-4">
+                <StrainTraitSection title="Strain effects" icon={<Sparkles className="w-4 h-4 text-primary" />}>
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                    <StrainTraitGroup
+                      label="Positive effects"
+                      items={effects}
+                      iconFor={(effect) => iconForKeyword(effect, effectIcons, defaultEffectIcon)}
+                      tone="positive"
+                      emptyLabel="No positive effects listed"
+                    />
+                    <StrainTraitGroup
+                      label="Negative effects"
+                      items={negativeEffects}
+                      iconFor={(effect) =>
+                        iconForKeyword(effect, negativeEffectIcons, defaultNegativeEffectIcon)
+                      }
+                      tone="negative"
+                      emptyLabel="No negative effects listed"
+                    />
                   </div>
-                  <div className="space-y-2">
-                    {strain.aromas.map((aroma) => (
-                      <div key={aroma} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[aroma] || defaultAromaIcon}
-                        <span>{aroma}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                </StrainTraitSection>
 
-                {/* Effects */}
-                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Effects</h4>
+                <StrainTraitSection title="Strain flavors" icon={<Apple className="w-4 h-4 text-primary" />}>
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                    <StrainTraitGroup
+                      label="Aroma"
+                      items={aromas}
+                      iconFor={(aroma) => iconForKeyword(aroma, aromaIcons, defaultAromaIcon)}
+                      emptyLabel="No aromas listed"
+                    />
+                    <StrainTraitGroup
+                      label="Taste"
+                      items={tastes}
+                      iconFor={(taste) => iconForKeyword(taste, aromaIcons, defaultTasteIcon)}
+                      emptyLabel="No tastes listed"
+                    />
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {strain.effects.map((effect) => (
-                      <span
-                        key={effect}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] sm:text-xs font-medium ${effectColors[effect] || positiveEffectDefault}`}
-                      >
-                        {effectIcons[effect] || <Smile className="w-3 h-3" />}
-                        <span>{effect}</span>
-                      </span>
-                    ))}
-                    {strain.negative_effects.map((effect) => (
-                      <span
-                        key={effect}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] sm:text-xs font-medium ${negativeEffectClass}`}
-                      >
-                        {negativeEffectIcons[effect] || <Frown className="w-3 h-3" />}
-                        <span>{effect}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                </StrainTraitSection>
 
-                {/* Medical Uses */}
-                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Medical</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {strain.medical_uses.map((use) => (
-                      <div key={use} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Heart className="w-3 h-3 text-primary/50" />
-                        <span>{use}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <StrainTraitSection title="Strain helps with" icon={<Heart className="w-4 h-4 text-primary" />}>
+                  <StrainTraitPills items={medicalUses} emptyLabel="No medical uses listed" />
+                </StrainTraitSection>
 
-                {/* Taste */}
-                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Apple className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Taste</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {strain.tastes.map((taste) => (
-                      <div key={taste} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {aromaIcons[taste] || defaultTasteIcon}
-                        <span>{taste}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Appearance */}
-                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Appearance</h4>
-                  </div>
+                <StrainTraitSection title="Appearance" icon={<Eye className="w-4 h-4 text-primary" />}>
                   {(() => {
                     const text =
                       strain.type === "Indica"
@@ -365,49 +358,39 @@ export function StrainDetail({ strain, onClose, isFavorite, onToggleFavorite }: 
                       text.toLowerCase().includes(k.toLowerCase())
                     );
                     return (
-                      <>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {(matched.length ? matched : ["Trait"]).map((k) => (
-                            <span
-                              key={k}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/40 border border-border text-[11px] text-muted-foreground"
-                            >
-                              {appearanceIcons[k] ?? defaultAppearanceIcon}
-                              <span>{k}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </>
+                      <div className="min-w-0 space-y-3">
+                        <p className="break-words text-sm text-muted-foreground leading-relaxed">{text}</p>
+                        <StrainTraitPills
+                          items={matched.length ? matched : ["Trait"]}
+                          iconFor={(k) => appearanceIcons[k] ?? defaultAppearanceIcon}
+                        />
+                      </div>
                     );
                   })()}
-                </div>
+                </StrainTraitSection>
 
-                {/* Genetics */}
-                <div className="p-4 sm:p-4 rounded-2xl bg-secondary space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Dna className="w-4 h-4 text-primary" />
-                    <h4 className="font-display font-semibold text-sm text-foreground uppercase tracking-wide">Genetics</h4>
-                  </div>
-                  {strain.genetics ? (
-                    <div className="space-y-1.5">
-                      {splitParents(strain.genetics).map((parent) => (
-                        <div
+                <StrainTraitSection title="Genetics" icon={<Dna className="w-4 h-4 text-primary" />}>
+                  {parents.length > 0 ? (
+                    <ul className="space-y-1.5">
+                      {parents.map((parent) => (
+                        <li
                           key={parent}
-                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                          className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground"
                         >
-                          {iconForKeyword(parent, geneticsIcons, defaultGeneticsIcon)}
-                          <span>{parent}</span>
-                        </div>
+                          <span className="shrink-0">
+                            {iconForKeyword(parent, geneticsIcons, defaultGeneticsIcon)}
+                          </span>
+                          <span className="min-w-0 break-words">{parent}</span>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   ) : (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       {defaultGeneticsIcon}
                       <span>Lineage unknown</span>
                     </div>
                   )}
-                </div>
+                </StrainTraitSection>
               </div>
             </div>
           </motion.div>

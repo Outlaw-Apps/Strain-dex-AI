@@ -15,6 +15,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImageCropperDialog } from "@/components/ImageCropperDialog";
+import { formatMetric, textOr } from "@/lib/strainFields";
 
 interface StrainCardProps {
   strain: DbStrain;
@@ -37,6 +38,11 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
       : strain.type === "Sativa"
       ? "badge-sativa"
       : "badge-hybrid";
+
+  const name = textOr(strain.name, "Unnamed strain");
+  const terpene = textOr(strain.dominant_terpene, "—");
+  const thc = formatMetric(strain.thc);
+  const cbd = formatMetric(strain.cbd);
 
   const handlePicked = (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -96,7 +102,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
       }}
       role="button"
       tabIndex={0}
-      aria-label={`Open ${strain.name}`}
+      aria-label={`Open ${name}`}
       className="group relative cursor-pointer outline-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] focus-visible:-translate-y-0.5"
     >
       {/* Emerald glow behind the card */}
@@ -108,7 +114,7 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
           {strain.image_url ? (
             <img
               src={strain.image_url}
-              alt={strain.name}
+              alt={name}
               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-500"
               loading="lazy"
             />
@@ -164,30 +170,36 @@ export function StrainCard({ strain, onClick, index, isFavorite, onToggleFavorit
           )}
         </div>
 
-        <div className="p-3.5 md:p-4 space-y-3">
-          <h3 className="font-display text-sm md:text-[15px] xl:text-base uppercase leading-[1.1] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto line-clamp-2 overflow-hidden min-h-[2.2em]">
-            {strain.name}
+        <div className="min-w-0 p-3.5 md:p-4 space-y-3">
+          <h3
+            title={name}
+            className="font-display text-sm md:text-[15px] xl:text-base uppercase leading-[1.1] track-tightest text-foreground group-hover:chrome-gold transition-colors break-words hyphens-auto line-clamp-2 overflow-hidden min-h-[2.2em]"
+          >
+            {name}
           </h3>
           <div className="hairline-gold" />
           <div className="flex items-stretch gap-2 md:gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1.5">THC</p>
               <p className="text-base md:text-lg font-black text-foreground leading-none tabular-nums">
-                {strain.thc}<span className="text-[10px] md:text-[11px] text-gold font-black ml-0.5 align-top">%</span>
+                {thc}{thc !== "—" && <span className="text-[10px] md:text-[11px] text-gold font-black ml-0.5 align-top">%</span>}
               </p>
             </div>
             <div className="w-px bg-gold/20" />
             <div className="min-w-0 flex-1">
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1.5">CBD</p>
               <p className="text-base md:text-lg font-black text-foreground leading-none tabular-nums">
-                {strain.cbd}<span className="text-[10px] md:text-[11px] text-gold font-black ml-0.5 align-top">%</span>
+                {cbd}{cbd !== "—" && <span className="text-[10px] md:text-[11px] text-gold font-black ml-0.5 align-top">%</span>}
               </p>
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-2 border-t border-gold/10 min-w-0">
             <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none shrink-0">Terpene</p>
-            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.05em] text-gold-light truncate leading-none min-w-0 text-right">
-              {strain.dominant_terpene}
+            <p
+              title={terpene}
+              className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.05em] text-gold-light truncate leading-none min-w-0 text-right"
+            >
+              {terpene}
             </p>
           </div>
         </div>
